@@ -8,5 +8,12 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY,
     },
+  
   },
+    css: [
+      '@/assets/css/normalize.css',
+      '@/assets/css/main.css' // your custom styles
+    ]
+  
 })
+

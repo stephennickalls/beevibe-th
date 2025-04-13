@@ -1,81 +1,90 @@
 <template>
   <div class="page-container">
-    <!-- Header -->
-    <header class="main-header">
-      <img src="/images/bee hollow.png" alt="Bee Icon" class="bee-icon" />
-      <!-- nav goes here -->
-    </header>
+    <div class="container">
+      <!-- Header -->
+      <header class="main-header">
+        <img src="/images/bee hollow.png" alt="Bee Icon" class="bee-icon" />
+        <!-- nav goes here -->
+      </header>
 
-    <!-- Hero Section -->
-    <div class="hero-section">
-      <h1 class="hero-title">
-        Real-Time Insights<br />For a Healthier Hive
-      </h1>
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <h1 class="hero-title">
+          Real-Time Insights<br />For a Healthier Hive
+        </h1>
+        <NuxtLink to="/dashboard" class="btn">See Hives</NuxtLink>
+      </div>
+
+      
+
+      <!-- Features Section -->
+      <div class="features-section">
+        <h2 class="features-heading">BeeVibe</h2>
+        <div class="card-grid">
+          <Card 
+            title="Open Source Electronics" 
+            description="God creates dinosaurs. God destroys dinosaurs. God creates Man. Man destroys 
+            God. Man creates Dinosaurs. Just my luck, no ice. Just my luck, no ice. Life finds a way. 
+            " 
+          />
+          <Card 
+            title="Open Source Code" 
+            description="God creates dinosaurs. God destroys dinosaurs. God creates Man. Man destroys 
+            God. Man creates Dinosaurs. Just my luck, no ice. Just my luck, no ice. Life finds a way." 
+          />
+          <Card 
+            title="Get Started" 
+            description="God creates dinosaurs. God destroys dinosaurs. God creates Man. Man destroys 
+            God. Man creates Dinosaurs. Just my luck, no ice. Just my luck, no ice. Life finds a way." 
+          />
+        </div>
+        <!-- <button class="btn more-info">More Info</button> -->
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <img src="/images/bee-footer-line.png" alt="Bee Icon" class="" />
+        <div class="footer-columns-wrapper">
+          <div class="footer-columns">
+
+            <div class="footer-nav-1">
+              <h4 class="footer-heading">Company</h4>
+              <ul class="footer-links">
+                <li><a href="/blog">Blog</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/jobs">Jobs</a></li>
+              </ul>
+            </div>
+            
+            <div class="footer-nav-2">
+              <h4 class="footer-heading">Product</h4>
+              <ul class="footer-links">
+                <li>Features</li>
+                <li>Pricing</li>
+                <li>Help Center</li>
+              </ul>
+            </div>
+            <div class="footer-nav-3">
+              <h4 class="footer-heading">Q&A</h4>
+              <ul class="footer-links">
+                <li>Common Q</li>
+                <li>Media</li>
+                <li>Contact Info</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="footer-logo">
+          <img src="/images/Footer Logo.png" alt="Bee Icon" class="" />
+        </div>
+        <div class="footer-bottom">
+          <p>Privacy policy · Privacy settings · Terms of service · Report issue</p>
+        </div>
+      </footer>
     </div>
-
-    <NuxtLink to="/dashboard" class="see-hives-btn">See Hives</NuxtLink>
-
-    <!-- Features Section -->
-    <div class="features-section">
-      <h2 class="features-heading">BeeVibe</h2>
-      <div class="card-grid">
-        <Card 
-          title="Open Source" 
-          description="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s..." 
-        />
-        <Card 
-          title="Open Code" 
-          description="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s..." 
-        />
-        <Card 
-          title="Get Started" 
-          description="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s..." 
-        />
-      </div>
-      <button class="see-hives-btn more-info">More Info</button>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-columns">
-        <div>
-          <h4 class="footer-heading">Company</h4>
-          <ul class="footer-links">
-            <li>Blog</li>
-            <li>About</li>
-            <li>Jobs</li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="footer-heading">Product</h4>
-          <ul class="footer-links">
-            <li>Features</li>
-            <li>Pricing</li>
-            <li>Help Center</li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="footer-heading">Q&A</h4>
-          <ul class="footer-links">
-            <li>Common Q</li>
-            <li>Media</li>
-            <li>Contact Info</li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-logo">
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-          <circle cx="30" cy="30" r="28" stroke="black" stroke-width="3"/>
-          <text x="18" y="38" font-size="16" fill="black">Bee</text>
-        </svg>
-        <h1 class="footer-brand">BeeVibe</h1>
-      </div>
-      <div class="footer-bottom">
-        <p>Privacy policy · Privacy settings · Terms of service · Report issue</p>
-      </div>
-    </footer>
   </div>
 </template>
+
 
 <script setup>
 import Card from '@/components/Card.vue'
@@ -105,7 +114,7 @@ import Card from '@/components/Card.vue'
   bottom: 0;
   left: 1.5rem;
   right: 1.5rem;
-  height: 2px;
+  height: 3px;
   background-color: black;
 }
 
@@ -117,21 +126,21 @@ import Card from '@/components/Card.vue'
 
 /* Hero Section */
 .hero-section {
-  text-align: center;
+  text-align: left;
   padding: 5rem 1.5rem;
 }
 
 .hero-title {
-  font-size: 2.5rem;
-  font-weight: bold;
+  font-size: 6rem;
+  font-weight: 600;
   line-height: 1.3;
   margin-top: 1.5rem;
 }
 
 /* Button */
-.see-hives-btn {
+.btn {
   background-color: #d4ff57;
-  border: 1px solid #000;
+  border: 2px solid #000;
   color: #000;
   text-decoration: none;
   padding: 10px 20px;
@@ -167,41 +176,64 @@ import Card from '@/components/Card.vue'
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 24px;
+  margin: 50px;
   margin-bottom: 2rem;
 }
 
 /* Footer */
 .footer {
   text-align: center;
-  border-top: 1px solid black;
   padding: 2rem 1.5rem 1rem;
 }
 
 .footer-columns {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  display: flex;
+  justify-content: space-around;
   gap: 24px;
   margin-bottom: 1.5rem;
-  text-align: left;
 }
+
+.footer-columns-wrapper::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 3px;
+  background-color: black;
+  margin-top: 1rem;
+}
+
+
 
 .footer-heading {
   font-weight: bold;
+  font-size: 1.15rem;
 }
 
 .footer-links {
   list-style: none;
   padding: 0;
   font-size: 0.875rem;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .footer-links li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 1rem; /* Increased vertical spacing */
 }
 
+.footer-links a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #555; /* Optional hover effect */
+}
+
+
 .footer-logo {
-  padding: 1.5rem 0;
+  
+  width: 100%;
 }
 
 .footer-brand {
@@ -211,7 +243,23 @@ import Card from '@/components/Card.vue'
 }
 
 .footer-bottom {
-  font-size: 0.75rem;
+  font-size: 1rem;
   padding-bottom: 1rem;
+  text-align: left;
 }
+
+.footer-nav-1 {
+  text-align: left;
+}
+
+.footer-nav-3 {
+  text-align: right;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
 </style>
