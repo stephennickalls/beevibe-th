@@ -4,8 +4,8 @@
       <NuxtLink to="/"><img src="/images/bee hollow.png" alt="Bee Icon" class="bee-icon" /></NuxtLink>
 
         <div class="left-buttons">
-          <NuxtLink to="" class="left-btn">Hives</NuxtLink>
-          <NuxtLink to="" class="left-btn">Sensors</NuxtLink>
+          <NuxtLink to="" class="left-btn"><img src="/images/apiary 3.png" alt="Apiary" class="bee-icon" /></NuxtLink>
+          <NuxtLink to="" class="left-btn"><img src="/images/sensor hollow 3.png" alt="Apiary" class="bee-icon" /></NuxtLink>
           <NuxtLink to="" class="left-btn">Other</NuxtLink>
           <NuxtLink to="" class="left-btn settings-btn">Settings</NuxtLink>
         </div>
@@ -63,51 +63,48 @@ const scrollToHives = () => {
   display: flex;
   width: 100%;
   height: 100vh;
+  background-color: #d1f661; /* bright lime green background */
 }
 
 .left-column {
   width: 10%;
-  background-color: #f0f0f0;
+  background-color: #d1f661;
   padding: 1rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .left-buttons {
   display: flex;
   flex-direction: column;
   height: 100%;
+  align-items: center;
+  margin-top: 2rem;
 }
 
 .left-btn {
-  background-color: #007bff;
-  color: white;
+  background-color: transparent;
+  color: black;
   border: none;
   padding: 0.5rem;
-  border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
   width: 60px;
   height: 60px;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   text-align: center;
-}
-
-.left-btn:hover {
-  background-color: #0056b3;
 }
 
 .settings-btn {
   margin-top: auto;
+  margin-bottom: 1rem;
 }
-
 
 /* Icon */
 .bee-icon {
   width: 60px;
   height: 60px;
-  margin-bottom: 1rem;
 }
 
 /* Right column */
@@ -116,6 +113,7 @@ const scrollToHives = () => {
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
+  background-color: #d1f661;
 }
 
 /* Hive list */
@@ -131,39 +129,48 @@ const scrollToHives = () => {
 
 .hive-grid {
   display: grid;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .hive-card {
-  border: 1px solid #ddd;
+  display: flex;
+  background-color: #2c2c2c; /* dark grey/black card */
+  border-radius: 10px;
+  color: white;
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .hive-name {
   font-size: 1.25rem;
   font-weight: 600;
+  color: #d1f661;
+  margin-bottom: 1rem;
+}
+
+.hive-card p {
+  color: white;
 }
 
 .no-hives {
-  color: #555;
+  color: #333;
 }
 
-/* Home link button */
+/* Home button */
 .see-hives-btn {
   display: inline-block;
   margin: 2rem 1rem 0;
   padding: 0.5rem 1rem;
-  background-color: #007bff;
-  color: #fff;
+  background-color: black;
+  color: #d1f661;
   text-decoration: none;
   border-radius: 4px;
+  border: 2px solid #d1f661;
 }
 
 .see-hives-btn:hover {
-  background-color: #0056b3;
+  background-color: #333;
 }
 
 
