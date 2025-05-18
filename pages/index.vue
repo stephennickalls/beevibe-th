@@ -137,21 +137,6 @@ import Card from '@/components/Card.vue'
   margin-top: 1.5rem;
 }
 
-/* Button */
-.btn {
-  background-color: #d4ff57;
-  border: 2px solid #000;
-  color: #000;
-  text-decoration: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
-  display: inline-block;
-  margin: 1rem auto;
-}
-
 .see-hives-btn:hover {
   background-color: #c4f04e;
 }
