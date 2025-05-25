@@ -1,16 +1,31 @@
 <template>
   <div class="page-layout">
     <div class="left-column">
-      <NuxtLink to="/"><img src="/images/bee hollow.png" alt="Bee Icon" class="bee-icon" /></NuxtLink>
-
-        <div class="left-buttons">
-          <NuxtLink to="" class="left-btn"><img src="/images/apiary 3.png" alt="Apiary" class="nav-icon" /></NuxtLink>
-          <NuxtLink to="" class="left-btn"><img src="/images/sensor hollow 3.png" alt="Sensor" class="nav-icon" /></NuxtLink>
-          <NuxtLink to="" class="left-btn">Other</NuxtLink>
-          <NuxtLink to="" class="left-btn settings-btn">Settings</NuxtLink>
-        </div>
-
-      
+      <NuxtLink to="/">
+        <img
+          src="/images/bee hollow.png"
+          alt="Bee Icon"
+          class="bee-icon"
+        />
+      </NuxtLink>
+      <div class="left-buttons">
+        <NuxtLink to="" class="left-btn">
+          <img
+            src="/images/apiary 3.png"
+            alt="Apiary"
+            class="nav-icon"
+          />
+        </NuxtLink>
+        <NuxtLink to="" class="left-btn">
+          <img
+            src="/images/sensor hollow 3.png"
+            alt="Sensor"
+            class="nav-icon"
+          />
+        </NuxtLink>
+        <NuxtLink to="" class="left-btn">Other</NuxtLink>
+        <NuxtLink to="" class="left-btn settings-btn">Settings</NuxtLink>
+      </div>
     </div>
 
     <div class="right-column">
@@ -19,45 +34,76 @@
         <h2 class="hive-title">Hives</h2>
         <button class="btn" @click="showModal = true">Add Hive</button>
 
-          <!-- Modal Form -->
-          <div v-if="showModal" class="modal-overlay">
-            <div class="modal-content">
-              <h3>{{ isEditing ? 'Edit Hive' : 'Add New Hive' }}</h3>
-              <form @submit.prevent="addHive">
-                <input v-model="form.name" type="text" placeholder="Hive Name" required />
-                <input v-model.number="form.latitude" type="text" placeholder="Latitude" required />
-                <input v-model.number="form.longitude" type="text" placeholder="Longitude" required />
-                <textarea v-model="form.description" placeholder="Description"></textarea>
-                <div class="modal-actions">
-                  <button type="button" @click="showModal = false">Cancel</button>
-                  <button type="submit">{{ isEditing ? 'Update' : 'Save' }}</button>
-                </div>
-              </form>
-            </div>
+        <!-- Modal Form -->
+        <div v-if="showModal" class="modal-overlay">
+          <div class="modal-content">
+            <h3>{{ isEditing ? 'Edit Hive' : 'Add New Hive' }}</h3>
+            <form @submit.prevent="addHive">
+              <input
+                v-model="form.name"
+                type="text"
+                placeholder="Hive Name"
+                required
+              />
+              <input
+                v-model.number="form.latitude"
+                type="text"
+                placeholder="Latitude"
+                required
+              />
+              <input
+                v-model.number="form.longitude"
+                type="text"
+                placeholder="Longitude"
+                required
+              />
+              <textarea
+                v-model="form.description"
+                placeholder="Description"
+              ></textarea>
+              <div class="modal-actions">
+                <button type="button" @click="showModal = false">Cancel</button>
+                <button type="submit">{{ isEditing ? 'Update' : 'Save' }}</button>
+              </div>
+            </form>
           </div>
+        </div>
 
+        <!-- Updated Hive Cards -->
         <div v-if="hives.length" class="hive-grid">
           <div
             v-for="hive in hives"
             :key="hive.id"
-            class="hive-card"
-
-            
+            class="example-hive-card"
           >
-            <h3 class="hive-name">{{ hive.name }}</h3>
-            <p><strong>Location:</strong> {{ hive.location }}</p>
-            <p><strong>Description:</strong> {{ hive.description }}</p>
-
-            <!-- Button group -->
-            <div class="hive-actions">
-              <button class="invert-btn" @click="addSensor(hive.id)">Add Sensor</button>
-              <button class="invert-btn" @click="editHive(hive)">Edit Hive</button>
-              <button class="invert-btn" @click="deleteHive(hive.id)">Delete Hive</button>
+            <div class="example-left">
+              <button class="icon-btn">
+                <!-- <img
+                  src="/images/temperature.png"
+                  alt="Temperature Icon"
+                /> -->
+              </button>
+              <button class="icon-btn">
+                <!-- <img
+                  src="/images/humidity.png"
+                  alt="Humidity Icon"
+                /> -->
+              </button>
+              <button class="icon-btn">
+                <!-- <img
+                  src="/images/weight.png"
+                  alt="Weight Icon"
+                /> -->
+              </button>
+              <button class="icon-btn empty"></button>
+              <button class="add-btn" @click="addSensor(hive.id)">Add</button>
             </div>
-
+            <div class="example-right">
+              <h3>{{ hive.name }}</h3>
+              <!-- Optional graph placeholder -->
+              <!-- <img src="/images/example-graph.png" alt="Example Graph" class="example-graph" /> -->
+            </div>
           </div>
-
-
         </div>
         <p v-else class="no-hives">No hives found.</p>
       </div>
@@ -67,37 +113,30 @@
   </div>
 </template>
 
-
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted } from 'vue';
 
 const isEditing = ref(false);
 const editingHiveId = ref(null);
 const hives = ref([]);
 const showModal = ref(false);
-const form = ref({
-  name: '',
-  latitude: null,
-  longitude: null,
-  description: '',
-});
-
+const form = ref({ name: '', latitude: null, longitude: null, description: '' });
 
 const fetchHives = async () => {
   try {
-    const response = await fetch("/api/hives");
+    const response = await fetch('/api/hives');
     hives.value = await response.json();
   } catch (error) {
-    console.error("Error fetching hives:", error);
+    console.error('Error fetching hives:', error);
   }
 };
-
-
 
 const addHive = async () => {
   try {
     const method = isEditing.value ? 'PUT' : 'POST';
-    const url = isEditing.value ? `/api/hives/${editingHiveId.value}` : '/api/hives';
+    const url = isEditing.value
+      ? `/api/hives/${editingHiveId.value}`
+      : '/api/hives';
 
     await fetch(url, {
       method,
@@ -109,7 +148,7 @@ const addHive = async () => {
     form.value = { name: '', latitude: null, longitude: null, description: '' };
     isEditing.value = false;
     editingHiveId.value = null;
-    fetchHives(); // Refresh list
+    fetchHives();
   } catch (error) {
     console.error('Error saving hive:', error);
   }
@@ -128,30 +167,20 @@ const editHive = (hive) => {
 };
 
 const addSensor = (hiveId) => {
-  // Replace this with actual logic later
   alert(`Add Sensor to Hive ID: ${hiveId}`);
 };
 
 const deleteHive = async (hiveId) => {
-  if (!confirm("Are you sure you want to delete this hive?")) return;
-
+  if (!confirm('Are you sure you want to delete this hive?')) return;
   try {
-    await fetch(`/api/hives/${hiveId}`, {
-      method: 'DELETE',
-    });
-    fetchHives(); // Refresh list
+    await fetch(`/api/hives/${hiveId}`, { method: 'DELETE' });
+    fetchHives();
   } catch (error) {
-    console.error("Error deleting hive:", error);
+    console.error('Error deleting hive:', error);
   }
 };
 
-
-
 onMounted(fetchHives);
-
-const scrollToHives = () => {
-  document.getElementById("hive-list").scrollIntoView({ behavior: "smooth" });
-};
 </script>
 
 <style scoped>
@@ -189,7 +218,6 @@ const scrollToHives = () => {
   width: 60px;
   height: 60px;
   margin-bottom: 1.5rem;
-  text-align: center;
 }
 
 .settings-btn {
@@ -197,7 +225,6 @@ const scrollToHives = () => {
   margin-bottom: 1rem;
 }
 
-/* Icon */
 .bee-icon {
   width: 60px;
   height: 60px;
@@ -208,7 +235,6 @@ const scrollToHives = () => {
   height: 40px;
 }
 
-/* Right column */
 .right-column {
   width: 90%;
   padding: 1rem;
@@ -217,7 +243,6 @@ const scrollToHives = () => {
   background-color: #d1f661;
 }
 
-/* Hive list */
 .hive-list {
   padding: 1.5rem;
 }
@@ -230,40 +255,76 @@ const scrollToHives = () => {
 
 .hive-grid {
   display: grid;
-  gap: 2rem;
+  gap: 1rem;
 }
 
-.hive-card {
+/* Example Hive Card Styles */
+.example-hive-card {
   display: flex;
-  background-color: #2c2c2c; /* dark grey/black card */
-  border-radius: 10px;
-  color: white;
-  padding: 1rem;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.hive-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #d1f661;
+  background-color: #d1f661;
+  border: 2px solid #333;
+  border-radius: 8px;
   margin-bottom: 1rem;
+  overflow: hidden;
 }
 
-.hive-card p {
-  color: white;
+.example-left {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-right: 2px solid #333;
 }
 
-.no-hives {
-  color: #333;
+.icon-btn {
+  background: #d1f661;
+  border: 2px solid #333;
+  padding: 1.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.see-hives-btn:hover {
-  background-color: #333;
+.icon-btn img {
+  width: 24px;
+  height: 24px;
 }
 
- /* ---Modal Section--- */
- .modal-overlay {
+.icon-btn.empty {
+  height: 48px;
+  border: 2px solid #333;
+  background: transparent;
+}
+
+.add-btn {
+  margin-top: auto;
+  padding: 0.5rem;
+  border: 2px solid #333;
+  background: #d1f661;
+  cursor: pointer;
+}
+
+.example-right {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.example-right h3 {
+  margin-bottom: 0.5rem;
+}
+
+.example-graph {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Modal Styles */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -301,7 +362,4 @@ const scrollToHives = () => {
   display: flex;
   justify-content: space-between;
 }
-
-
-
 </style>
