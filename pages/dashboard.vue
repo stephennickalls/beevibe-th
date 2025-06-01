@@ -38,7 +38,7 @@
         <div v-if="showModal" class="modal-overlay">
           <div class="modal-content">
             <h3>{{ isEditing ? 'Edit Hive' : 'Add New Hive' }}</h3>
-            <form @submit.prevent="addHive">
+            <form @submit.prevent="submitHive">
               <input
                 v-model="form.name"
                 type="text"
@@ -63,11 +63,24 @@
               ></textarea>
               <div class="modal-actions">
                 <button type="button" @click="showModal = false">Cancel</button>
-                <button type="submit">{{ isEditing ? 'Update' : 'Save' }}</button>
+
+                <button type="submit">
+                  {{ isEditing ? 'Update' : 'Save' }}
+                </button>
+
+                <button
+                  v-if="isEditing"
+                  type="button"
+                  class="delete-btn"
+                  @click="confirmDeleteHive"
+                >
+                  Delete
+                </button>
               </div>
             </form>
           </div>
         </div>
+
 
         <!-- Updated Hive Cards -->
         <div v-if="hives.length" class="hive-grid">
@@ -78,33 +91,29 @@
           >
             <div class="example-left">
               <button class="icon-btn">
-                <!-- <img
-                  src="/images/temperature.png"
-                  alt="Temperature Icon"
-                /> -->
+                <!-- <img src="/images/temperature.png" alt="Temperature Icon" /> -->
               </button>
               <button class="icon-btn">
-                <!-- <img
-                  src="/images/humidity.png"
-                  alt="Humidity Icon"
-                /> -->
+                <!-- <img src="/images/humidity.png" alt="Humidity Icon" /> -->
               </button>
               <button class="icon-btn">
-                <!-- <img
-                  src="/images/weight.png"
-                  alt="Weight Icon"
-                /> -->
+                <!-- <img src="/images/weight.png" alt="Weight Icon" /> -->
               </button>
               <button class="icon-btn empty"></button>
               <button class="add-btn" @click="addSensor(hive.id)">Add</button>
             </div>
+
             <div class="example-right">
               <h3>{{ hive.name }}</h3>
-              <!-- Optional graph placeholder -->
-              <!-- <img src="/images/example-graph.png" alt="Example Graph" class="example-graph" /> -->
+
+              <div class="card-actions">
+                <button class="edit-btn" @click="editHive(hive)">Edit</button>
+                <button class="delete-btn" @click="deleteHive(hive.uuid)">Delete</button>
+              </div>
             </div>
           </div>
         </div>
+
         <p v-else class="no-hives">No hives found.</p>
       </div>
 
@@ -131,12 +140,12 @@ const fetchHives = async () => {
   }
 };
 
-const addHive = async () => {
+const submitHive = async () => {
   try {
     const method = isEditing.value ? 'PUT' : 'POST';
     const url = isEditing.value
-      ? `/api/hives/${editingHiveId.value}`
-      : '/api/hives';
+      ? `/api/hive/${editingHiveId.value}`
+      : '/api/hive';
 
     await fetch(url, {
       method,
@@ -145,14 +154,34 @@ const addHive = async () => {
     });
 
     showModal.value = false;
-    form.value = { name: '', latitude: null, longitude: null, description: '' };
-    isEditing.value = false;
-    editingHiveId.value = null;
+    resetForm();
     fetchHives();
   } catch (error) {
     console.error('Error saving hive:', error);
   }
 };
+
+const confirmDeleteHive = async () => {
+  if (!confirm('Are you sure you want to delete this hive?')) return;
+  try {
+    await fetch(`/api/hive/${editingHiveId.value}`, {
+      method: 'DELETE',
+    });
+
+    showModal.value = false;
+    resetForm();
+    fetchHives();
+  } catch (error) {
+    console.error('Error deleting hive:', error);
+  }
+};
+
+const resetForm = () => {
+  form.value = { name: '', latitude: null, longitude: null, description: '' };
+  isEditing.value = false;
+  editingHiveId.value = null;
+};
+
 
 const editHive = (hive) => {
   form.value = {
@@ -161,24 +190,28 @@ const editHive = (hive) => {
     longitude: hive.longitude,
     description: hive.description || '',
   };
-  editingHiveId.value = hive.id;
+  editingHiveId.value = hive.uuid;
   isEditing.value = true;
   showModal.value = true;
 };
+
+
+
 
 const addSensor = (hiveId) => {
   alert(`Add Sensor to Hive ID: ${hiveId}`);
 };
 
-const deleteHive = async (hiveId) => {
+const deleteHive = async (hiveUuid) => {
   if (!confirm('Are you sure you want to delete this hive?')) return;
   try {
-    await fetch(`/api/hives/${hiveId}`, { method: 'DELETE' });
+    await fetch(`/api/hive/${hiveUuid}`, { method: 'DELETE' });
     fetchHives();
   } catch (error) {
     console.error('Error deleting hive:', error);
   }
 };
+
 
 onMounted(fetchHives);
 </script>
@@ -362,4 +395,32 @@ onMounted(fetchHives);
   display: flex;
   justify-content: space-between;
 }
+
+/* -------------------- */
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 0.3rem 0.7rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.edit-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+
 </style>

@@ -1,4 +1,3 @@
-// server/api/hives/[uuid].ts
 import { defineEventHandler, readBody, createError } from 'h3'
 import { createClient } from '@supabase/supabase-js'
 
@@ -8,25 +7,51 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 export default defineEventHandler(async (event) => {
   const uuid = event.context.params?.uuid
+
   if (!uuid) {
     throw createError({ statusCode: 400, statusMessage: 'Missing hive UUID in route.' })
   }
 
-  const { name } = await readBody<{ name?: string }>(event)
-  if (!name) {
-    throw createError({ statusCode: 400, statusMessage: 'Request body must include a `name` field.' })
+  //updates a hive
+  if (event.method === 'PUT') {
+    const { name, latitude, longitude, description } = await readBody(event)
+    if (!name && latitude == null && longitude == null && !description) {
+      throw createError({ statusCode: 400, statusMessage: 'Provide at least one field to update.' })
+    }
+
+    const updateFields: Record<string, any> = {}
+    if (name) updateFields.name = name
+    if (latitude != null) updateFields.latitude = latitude
+    if (longitude != null) updateFields.longitude = longitude
+    if (description) updateFields.description = description
+
+    const { data: hive, error } = await supabase
+      .from('hives')
+      .update(updateFields)
+      .eq('uuid', uuid)
+      .select()
+      .single()
+
+    if (error) {
+      throw createError({ statusCode: 500, statusMessage: error.message })
+    }
+
+    return { success: true, hive }
   }
 
-  const { data: hive, error } = await supabase
-    .from('hives')
-    .update({ name })
-    .eq('uuid', uuid)      // ← filter on your UUID column
-    .select()
-    .single()
+  //deletes a hive
+  if (event.method === 'DELETE') {
+    const { error } = await supabase
+      .from('hives')
+      .delete()
+      .eq('uuid', uuid)
 
-  if (error) {
-    throw createError({ statusCode: 500, statusMessage: error.message })
+    if (error) {
+      throw createError({ statusCode: 500, statusMessage: error.message })
+    }
+
+    return { success: true, message: 'Hive deleted successfully.' }
   }
 
-  return { success: true, hive }
+  throw createError({ statusCode: 405, statusMessage: 'Method Not Allowed' })
 })
