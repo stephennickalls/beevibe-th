@@ -2,26 +2,27 @@
   <div class="page-layout">
     <div class="left-column">
       <NuxtLink to="/">
-        <img
+        <!-- <img 
           src="/images/bee hollow.png"
           alt="Bee Icon"
           class="bee-icon"
-        />
+        />  -->
+
       </NuxtLink>
       <div class="left-buttons">
         <NuxtLink to="" class="left-btn">
-          <img
+          <!-- <img 
             src="/images/apiary 3.png"
             alt="Apiary"
             class="nav-icon"
-          />
+          />  -->
         </NuxtLink>
         <NuxtLink to="" class="left-btn">
-          <img
+          <!-- <img 
             src="/images/sensor hollow 3.png"
             alt="Sensor"
             class="nav-icon"
-          />
+          />  -->
         </NuxtLink>
         <NuxtLink to="" class="left-btn">Other</NuxtLink>
         <NuxtLink to="" class="left-btn settings-btn">Settings</NuxtLink>
