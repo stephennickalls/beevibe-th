@@ -1,12 +1,15 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
+  modules: ['@nuxtjs/tailwindcss'],
+
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
 
   runtimeConfig: {
     public: {
-      SUPABASE_URL: process.env.SUPABASE_URL,
-      SUPABASE_KEY: process.env.SUPABASE_KEY,
+      supabaseUrl: process.env.supabaseUrl,
+      supabaseKey: process.env.supabaseKey,
       JWT_SECRET: process.env.JWT_SECRET,
     },
   

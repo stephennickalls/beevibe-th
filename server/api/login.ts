@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_KEY!
+const supabaseUrl = process.env.supabaseUrl!
+const supabaseKey = process.env.supabaseKey!
 const jwtSecret = process.env.JWT_SECRET!
 
 const supabase = createClient(supabaseUrl, supabaseKey)

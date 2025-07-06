@@ -3,7 +3,7 @@
     <div class="container">
       <!-- Header -->
       <header class="main-header">
-        <img src="/images/bee hollow.png" alt="Bee Icon" class="bee-icon" />
+        <img src="/images/BeeVibe-Logos/SVGs/BeeVibe-Logo-Black.svg" alt="Bee Icon" class="bee-icon" />
         <!-- nav goes here -->
       </header>
 
@@ -19,7 +19,6 @@
 
       <!-- Features Section -->
       <div class="features-section">
-        <h2 class="features-heading">BeeVibe</h2>
         <div class="card-grid">
           <Card 
             title="Open Source Electronics" 
@@ -43,7 +42,11 @@
 
       <!-- Footer -->
       <footer class="footer">
-        <img src="/images/bee-footer-line.png" alt="Bee Icon" class="" />
+       <div class="bee-divider">
+          <hr class="bee-line" />
+          <img src="/images/BeeVibe-Logos/SVGs/Bee-Black.svg" alt="Bee Icon" class="bee-footer-icon" />
+          <hr class="bee-line" />
+        </div>
         <div class="footer-columns-wrapper">
           <div class="footer-columns">
 
@@ -75,7 +78,7 @@
           </div>
         </div>
         <div class="footer-logo">
-          <img src="/images/Footer Logo.png" alt="Bee Icon" class="" />
+          <img src="/images/BeeVibe-Logos/SVGs/BeeVibe-Logo-Black.svg" alt="Bee Icon" class="" />
         </div>
         <div class="footer-bottom">
           <p>Privacy policy · Privacy settings · Terms of service · Report issue</p>
@@ -114,12 +117,12 @@ import Card from '@/components/Card.vue'
   bottom: 0;
   left: 1.5rem;
   right: 1.5rem;
-  height: 3px;
+  height: 1.5px;
   background-color: black;
 }
 
 .bee-icon {
-  width: 60px;
+  width: auto;
   height: 60px;
   margin-right: 12px;
 }
@@ -143,6 +146,15 @@ import Card from '@/components/Card.vue'
 
 .more-info {
   margin-bottom: 3rem;
+}
+
+.hero-section::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 1.5px;
+  background-color: black;
+  margin-top: 6rem;
 }
 
 /* Features Section */
@@ -171,6 +183,27 @@ import Card from '@/components/Card.vue'
   padding: 2rem 1.5rem 1rem;
 }
 
+.bee-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  /* padding: 20px; */
+}
+
+.bee-line {
+  flex: 1;
+  border: none;
+  border-top: 1.5px solid #000;
+}
+
+.bee-footer-icon {
+  margin: 0 20px;
+  width: 40px;
+  height: auto;
+}
+
+
 .footer-columns {
   display: flex;
   justify-content: space-around;
@@ -182,7 +215,7 @@ import Card from '@/components/Card.vue'
   content: "";
   display: block;
   width: 100%;
-  height: 3px;
+  height: 1px;
   background-color: black;
   margin-top: 1rem;
 }

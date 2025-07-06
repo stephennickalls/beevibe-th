@@ -2,8 +2,8 @@ import { defineEventHandler, readBody } from 'h3'
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
 
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_KEY!
+const supabaseUrl = process.env.supabaseUrl!
+const supabaseKey = process.env.supabaseKey!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 export default defineEventHandler(async (event) => {
