@@ -1,6 +1,7 @@
 <template>
   <div class="flex min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
     <!-- Sidebar Menu (hidden on mobile) -->
+     <!--temp comment-->
     <aside class="hidden md:flex flex-col w-60 bg-gray-950 text-white shadow-md p-4">
       <div class="flex flex-col items-center mb-10">
         <img src="/images/BeeVibe-Logos/SVGs/Bee-Blue.svg" alt="BeeVibe Logo" class="w-12 h-12 mb-2" />
