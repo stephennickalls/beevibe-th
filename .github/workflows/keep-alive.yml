@@ -1,0 +1,19 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allows manual trigger if needed
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Keep-Alive Function
+        run: |
+          curl -X GET "https://beevibe.co.nz/.netlify/functions/keep-alive" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --silent \
+            --show-error
