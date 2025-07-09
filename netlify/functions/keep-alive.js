@@ -1,11 +1,11 @@
 // netlify/functions/keep-alive.js
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   const supabaseUrl = process.env.supabaseUrl;
   const supabaseKey = process.env.supabaseKey;
   
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Supabase credentials not configured' })
@@ -17,7 +17,7 @@ exports.handler = async (event, context) => {
   try {
     // Simple query to keep database active
     const { data, error } = await supabase
-      .from('your_table_name') // Replace with any table in your database
+      .from('inspection_points') // Replace with any table in your database
       .select('*')
       .limit(1);
 
