@@ -17,7 +17,7 @@ export const handler = async (event, context) => {
   try {
     // Simple query to keep database active
     const { data, error } = await supabase
-      .from('inspection_points')
+      .from('hives')
       .select('id')
       .limit(1);
 
