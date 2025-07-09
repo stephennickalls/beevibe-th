@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 export const handler = async (event, context) => {
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = process.env.supabaseUrl;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseKey;
   
   if (!supabaseUrl || !supabaseKey) {
