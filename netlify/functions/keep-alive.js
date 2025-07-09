@@ -5,7 +5,7 @@ export const handler = async (event, context) => {
   const supabaseUrl = process.env.supabaseUrl;
   const supabaseKey = process.env.supabaseKey;
   
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseKey) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Supabase credentials not configured' })
