@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 export const handler = async (event, context) => {
-  const supabaseUrl = process.env.supabaseUrl;
-  const supabaseKey = process.env.supabaseKey;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseKey;
   
   if (!supabaseUrl || !supabaseKey) {
     return {
@@ -17,8 +17,8 @@ export const handler = async (event, context) => {
   try {
     // Simple query to keep database active
     const { data, error } = await supabase
-      .from('inspection_points') // Replace with any table in your database
-      .select('*')
+      .from('inspection_points')
+      .select('id')
       .limit(1);
 
     if (error) {
