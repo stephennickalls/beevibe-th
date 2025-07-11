@@ -9,7 +9,7 @@
 
       <!-- Hero Section -->
       <section class="text-left py-20 hero-border">
-        <h1 class="text-8xl font-semibold leading-tight mt-6 mb-8">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold leading-tight mt-6 mb-8">
           Real-Time Insights<br />For a Healthier Hive
         </h1>
         <NuxtLink 
