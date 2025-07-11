@@ -1,154 +1,131 @@
 <template>
-  <div class="page-container">
-    <div class="container">
+  <div class="min-h-screen bg-[#d1f661] font-open-sans text-[#212121]">
+    <div class="max-w-6xl mx-auto px-6">
       <!-- Header -->
-      <header class="main-header">
-        <img src="/images/BeeVibe-Logos/SVGs/BeeVibe-Logo-Black.svg" alt="Bee Icon" class="bee-icon" />
-        <!-- nav goes here -->
+      <header class="flex items-center py-4 relative header-border">
+        <img src="/images/BeeVibe-Logos/SVGs/BeeVibe-Logo-Black.svg" alt="BeeVibe Logo" class="w-auto h-15 mr-3" />
+        <!-- Navigation can be added here -->
       </header>
 
       <!-- Hero Section -->
-      <div class="hero-section">
-        <h1 class="hero-title">
+      <section class="text-left py-20 hero-border">
+        <h1 class="text-8xl font-semibold leading-tight mt-6 mb-8">
           Real-Time Insights<br />For a Healthier Hive
         </h1>
-        <NuxtLink to="/dashboard" class="btn">See Hives</NuxtLink>
-      </div>
-
-      
+        <NuxtLink 
+          to="/dashboard-v2" 
+          class="inline-block px-4 py-1.5 border-2 border-black text-black rounded-lg font-medium hover:bg-black hover:text-white transition-all duration-200"
+        >
+          Dashboard
+        </NuxtLink>
+      </section>
 
       <!-- Features Section -->
-      <div class="features-section">
-        <div class="card-grid">
+      <section class="text-center py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-12 justify-items-center">
           <Card 
             title="Open Source Electronics" 
-            description="God creates dinosaurs. God destroys dinosaurs. God creates Man. Man destroys 
-            God. Man creates Dinosaurs. Just my luck, no ice. Just my luck, no ice. Life finds a way. 
-            " 
+            description="Build your own IoT sensors with our open-source hardware designs. Monitor temperature, humidity, and weight with affordable, customizable components designed specifically for beehive monitoring."
           />
           <Card 
             title="Open Source Code" 
-            description="God creates dinosaurs. God destroys dinosaurs. God creates Man. Man destroys 
-            God. Man creates Dinosaurs. Just my luck, no ice. Just my luck, no ice. Life finds a way." 
+            description="Access our complete codebase and contribute to the future of beekeeping technology. Built with modern web technologies and designed for scalability and ease of use."
           />
           <Card 
             title="Get Started" 
-            description="God creates dinosaurs. God destroys dinosaurs. God creates Man. Man destroys 
-            God. Man creates Dinosaurs. Just my luck, no ice. Just my luck, no ice. Life finds a way." 
+            description="Jump into beehive monitoring with our comprehensive guides and documentation. From hardware assembly to software deployment, we'll help you every step of the way."
           />
         </div>
-        <!-- <button class="btn more-info">More Info</button> -->
-      </div>
+      </section>
 
       <!-- Footer -->
-      <footer class="footer">
-       <div class="bee-divider">
-          <hr class="bee-line" />
-          <img src="/images/BeeVibe-Logos/SVGs/Bee-Black.svg" alt="Bee Icon" class="bee-footer-icon" />
-          <hr class="bee-line" />
+      <footer class="text-center py-8 pb-4">
+        <!-- Bee Divider -->
+        <div class="flex items-center justify-center mb-5">
+          <hr class="flex-1 border-t-[1.5px] border-black" />
+          <img src="/images/BeeVibe-Logos/SVGs/Bee-Black.svg" alt="Bee Icon" class="mx-5 w-10 h-auto" />
+          <hr class="flex-1 border-t-[1.5px] border-black" />
         </div>
-        <div class="footer-columns-wrapper">
-          <div class="footer-columns">
 
-            <div class="footer-nav-1">
-              <h4 class="footer-heading">Company</h4>
-              <ul class="footer-links">
-                <li><a href="/blog">Blog</a></li>
-                <li><a href="/about">About</a></li>
-                <li><a href="/jobs">Jobs</a></li>
+        <!-- Footer Columns -->
+        <div class="footer-columns-wrapper">
+          <div class="flex justify-around gap-6 mb-6">
+            <div class="text-left">
+              <h4 class="font-bold text-lg mb-4">Company</h4>
+              <ul class="space-y-4 text-sm">
+                <li><NuxtLink to="/blog" class="hover:text-gray-600 transition-colors">Blog</NuxtLink></li>
+                <li><NuxtLink to="/about" class="hover:text-gray-600 transition-colors">About</NuxtLink></li>
+                <li><NuxtLink to="/jobs" class="hover:text-gray-600 transition-colors">Jobs</NuxtLink></li>
               </ul>
             </div>
             
-            <div class="footer-nav-2">
-              <h4 class="footer-heading">Product</h4>
-              <ul class="footer-links">
-                <li>Features</li>
-                <li>Pricing</li>
-                <li>Help Center</li>
+            <div class="text-center">
+              <h4 class="font-bold text-lg mb-4">Product</h4>
+              <ul class="space-y-4 text-sm">
+                <li><a href="#" class="hover:text-gray-600 transition-colors">Features</a></li>
+                <li><a href="#" class="hover:text-gray-600 transition-colors">Pricing</a></li>
+                <li><a href="#" class="hover:text-gray-600 transition-colors">Help Center</a></li>
               </ul>
             </div>
-            <div class="footer-nav-3">
-              <h4 class="footer-heading">Q&A</h4>
-              <ul class="footer-links">
-                <li>Common Q</li>
-                <li>Media</li>
-                <li>Contact Info</li>
+            
+            <div class="text-right">
+              <h4 class="font-bold text-lg mb-4">Q&A</h4>
+              <ul class="space-y-4 text-sm">
+                <li><a href="#" class="hover:text-gray-600 transition-colors">Common Q</a></li>
+                <li><a href="#" class="hover:text-gray-600 transition-colors">Media</a></li>
+                <li><a href="#" class="hover:text-gray-600 transition-colors">Contact Info</a></li>
               </ul>
             </div>
           </div>
         </div>
-        <div class="footer-logo">
-          <img src="/images/BeeVibe-Logos/SVGs/BeeVibe-Logo-Black.svg" alt="Bee Icon" class="" />
-        </div>
-        <div class="footer-bottom">
-          <p>Privacy policy · Privacy settings · Terms of service · Report issue</p>
-        </div>
       </footer>
+    </div>
+
+    <!-- Footer Logo - Full Width of Main Container -->
+    <div class="max-w-6xl mx-auto px-6 bg-[#d1f661] py-6">
+      <img src="/images/BeeVibe-Logos/SVGs/BeeVibe-Logo-Black.svg" alt="BeeVibe Logo" class="w-full h-auto" />
+    </div>
+
+    <!-- Footer Bottom - Back in Container -->
+    <div class="max-w-6xl mx-auto px-6 bg-[#d1f661]">
+      <div class="text-left text-base pb-4">
+        <p>Privacy policy · Privacy settings · Terms of service · Report issue</p>
+      </div>
     </div>
   </div>
 </template>
 
-
 <script setup>
 import Card from '@/components/Card.vue'
+
+// Meta tags for SEO
+useHead({
+  title: 'BeeVibe - Real-Time Beehive Monitoring',
+  meta: [
+    { name: 'description', content: 'Monitor your beehives in real-time with open-source IoT sensors. Track temperature, humidity, and weight for healthier, more productive hives.' }
+  ]
+})
 </script>
 
 <style scoped>
+/* Import Open Sans font */
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap");
 
-.page-container {
-  min-height: 100vh;
-  background-color: #d1f661;
-  font-family: "Open Sans", sans-serif;
-  color: #212121;
-}
+/* Custom CSS for specific design elements that can't be done with Tailwind */
 
-/* Header */
-.main-header {
-  display: flex;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  position: relative;
-}
-
-.main-header::after {
+/* Header bottom border */
+.header-border::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 1.5rem;
-  right: 1.5rem;
+  left: 0;
+  right: 0;
   height: 1.5px;
   background-color: black;
 }
 
-.bee-icon {
-  width: auto;
-  height: 60px;
-  margin-right: 12px;
-}
-
-/* Hero Section */
-.hero-section {
-  text-align: left;
-  padding: 5rem 1.5rem;
-}
-
-.hero-title {
-  font-size: 6rem;
-  font-weight: 600;
-  line-height: 1.3;
-  margin-top: 1.5rem;
-}
-
-.see-hives-btn:hover {
-  background-color: #c4f04e;
-}
-
-.more-info {
-  margin-bottom: 3rem;
-}
-
-.hero-section::after {
+/* Hero section bottom border */
+.hero-border::after {
   content: "";
   display: block;
   width: 100%;
@@ -157,60 +134,7 @@ import Card from '@/components/Card.vue'
   margin-top: 6rem;
 }
 
-/* Features Section */
-.features-section {
-  text-align: center;
-  padding: 0 1.5rem;
-}
-
-.features-heading {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 24px;
-  margin: 50px;
-  margin-bottom: 2rem;
-}
-
-/* Footer */
-.footer {
-  text-align: center;
-  padding: 2rem 1.5rem 1rem;
-}
-
-.bee-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  /* padding: 20px; */
-}
-
-.bee-line {
-  flex: 1;
-  border: none;
-  border-top: 1.5px solid #000;
-}
-
-.bee-footer-icon {
-  margin: 0 20px;
-  width: 40px;
-  height: auto;
-}
-
-
-.footer-columns {
-  display: flex;
-  justify-content: space-around;
-  gap: 24px;
-  margin-bottom: 1.5rem;
-}
-
+/* Footer columns wrapper bottom border */
 .footer-columns-wrapper::after {
   content: "";
   display: block;
@@ -220,64 +144,8 @@ import Card from '@/components/Card.vue'
   margin-top: 1rem;
 }
 
-
-
-.footer-heading {
-  font-weight: bold;
-  font-size: 1.15rem;
+/* Custom font family class */
+.font-open-sans {
+  font-family: "Open Sans", sans-serif;
 }
-
-.footer-links {
-  list-style: none;
-  padding: 0;
-  font-size: 0.875rem;
-  margin-top: 1rem;
-}
-
-.footer-links li {
-  margin-bottom: 1rem; /* Increased vertical spacing */
-}
-
-.footer-links a {
-  text-decoration: none;
-  color: inherit;
-  transition: color 0.3s ease;
-}
-
-.footer-links a:hover {
-  color: #555; /* Optional hover effect */
-}
-
-
-.footer-logo {
-  
-  width: 100%;
-}
-
-.footer-brand {
-  font-size: 2.25rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-}
-
-.footer-bottom {
-  font-size: 1rem;
-  padding-bottom: 1rem;
-  text-align: left;
-}
-
-.footer-nav-1 {
-  text-align: left;
-}
-
-.footer-nav-3 {
-  text-align: right;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
 </style>
