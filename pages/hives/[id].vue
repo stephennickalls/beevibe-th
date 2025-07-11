@@ -52,13 +52,13 @@
           </div>
           
           <div class="flex space-x-3">
-            <button @click="showEditModal = true" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+            <button @click="showEditModal = true" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
               </svg>
               <span>Edit</span>
             </button>
-            <button @click="showDeleteModal = true" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+            <button @click="showDeleteModal = true" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM4 5a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z"/>
               </svg>
@@ -146,7 +146,7 @@
                   <span v-else class="font-mono text-sm break-all">{{ hive.uuid || 'Not set' }}</span>
                   <button 
                     @click="showHiveUuid = !showHiveUuid" 
-                    class="text-blue-400 hover:text-blue-300 text-xs"
+                    class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer"
                     :title="showHiveUuid ? 'Hide UUID' : 'Show UUID'"
                   >
                     <svg v-if="showHiveUuid" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -161,7 +161,7 @@
                   <button 
                     v-if="showHiveUuid && hive.uuid" 
                     @click="copyToClipboard(hive.uuid, 'Hive UUID')"
-                    class="text-gray-400 hover:text-white text-xs"
+                    class="text-gray-400 hover:text-white text-xs cersor-pointer"
                     title="Copy UUID"
                   >
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -200,7 +200,7 @@
           <div class="bg-gray-900 rounded-2xl p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-xl font-semibold">Sensors</h3>
-              <button @click="showAddSensorModal = true" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors">
+              <button @click="showAddSensorModal = true" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors cursor-pointer">
                 Add Sensor
               </button>
             </div>
@@ -229,21 +229,21 @@
                       {{ sensor.is_online ? 'Online' : 'Offline' }}
                     </p>
                   </div>
-                <div class="flex flex-col space-y-1">
-                  <button 
-                    @click="openRemoveSensorModal(sensor)" 
-                    class="text-red-400 hover:text-red-300 text-xs"
-                  >
-                    Remove
-                  </button>
-                  <button 
-                    @click="openSensorDetailModal(sensor)"
-                    class="text-blue-400 hover:text-blue-300 text-xs underline"
-                    title="View sensor details"
-                  >
-                    Edit Details
-                  </button>
-                </div>
+                  <div class="flex flex-col items-end space-y-2">
+                    <button 
+                      @click="openRemoveSensorModal(sensor)" 
+                      class="text-red-400 hover:text-red-300 text-xs cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                    <button 
+                      @click="openSensorDetailModal(sensor)"
+                      class="text-blue-400 hover:text-blue-300 text-xs underline cursor-pointer"
+                      title="View sensor details"
+                    >
+                      Edit Details
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -293,8 +293,8 @@
           </div>
           
           <div class="flex justify-end space-x-3 p-6 border-t border-gray-700">
-            <button @click="closeEditModal" class="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
-            <button @click="updateHive" :disabled="updating" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg">
+            <button @click="closeEditModal" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">Cancel</button>
+            <button @click="updateHive" :disabled="updating" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg cursor-pointer">
               {{ updating ? 'Saving...' : 'Save Changes' }}
             </button>
           </div>
@@ -311,21 +311,53 @@
               </svg>
               <h3 class="text-lg font-semibold">Delete Hive</h3>
             </div>
-            <p class="text-gray-300 mb-6">
-              Are you sure you want to delete "{{ hive.name || `Hive ${hive.id}` }}"? 
-              This action cannot be undone and will remove all associated sensor data.
-            </p>
+            
+            <div class="mb-6">
+              <p class="text-gray-300 mb-4">
+                Are you sure you want to delete "{{ hive.name || `Hive ${hive.id}` }}"?
+              </p>
+              <p class="text-gray-300 mb-4">
+                This action cannot be undone and will remove all associated sensor data and historical records.
+              </p>
+              
+              <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-4">
+                <p class="text-red-300 text-sm mb-2">
+                  To confirm deletion, please type the hive name below:
+                </p>
+                <p class="text-white font-mono text-sm mb-3 bg-gray-900 px-3 py-2 rounded">
+                  {{ hive.name || `Hive ${hive.id}` }}
+                </p>
+                <input
+                  v-model="deleteHiveForm.confirmationName"
+                  type="text"
+                  placeholder="Type hive name to confirm"
+                  class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                  :class="{ 'border-red-500': deleteHiveForm.confirmationName && !canDeleteHive }"
+                />
+              </div>
+            </div>
+            
             <div class="flex justify-end space-x-3">
-              <button @click="showDeleteModal = false" class="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
-              <button @click="deleteHive" :disabled="deleting" class="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 rounded-lg">
-                {{ deleting ? 'Deleting...' : 'Delete Hive' }}
+              <button @click="closeDeleteModal" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer" :disabled="deleting">
+                Cancel
+              </button>
+              <button 
+                @click="deleteHive" 
+                :disabled="!canDeleteHive || deleting" 
+                class="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center space-x-2 cursor-pointer"
+              >
+                <svg v-if="deleting" class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>{{ deleting ? 'Deleting...' : 'Delete Hive' }}</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-<!-- Assign Sensor Modal -->
+      <!-- Assign Sensor Modal -->
       <div v-if="showAddSensorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-lg w-full max-w-md">
           <div class="flex justify-between items-center p-6 border-b border-gray-700">
@@ -541,6 +573,10 @@ const editForm = ref({
   is_active: true
 })
 
+const deleteHiveForm = ref({
+  confirmationName: ''
+})
+
 const selectedSensorId = ref('')
 const selectedSensor = ref(null)
 
@@ -574,6 +610,11 @@ const canRemoveSensor = computed(() => {
   if (!removeSensorForm.value.sensorToRemove) return false
   const sensorName = removeSensorForm.value.sensorToRemove.name || `${removeSensorForm.value.sensorToRemove.sensor_type} Sensor`
   return removeSensorForm.value.confirmationName.trim() === sensorName
+})
+
+const canDeleteHive = computed(() => {
+  const hiveName = hive.value.name || `Hive ${hive.value.id}`
+  return deleteHiveForm.value.confirmationName.trim() === hiveName
 })
 
 // Functions
@@ -692,6 +733,11 @@ const openRemoveSensorModal = (sensor) => {
   removeSensorForm.value.sensorToRemove = sensor
   removeSensorForm.value.confirmationName = ''
   showRemoveSensorModal.value = true
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  deleteHiveForm.value.confirmationName = ''
 }
 
 // API functions

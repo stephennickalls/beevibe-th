@@ -96,13 +96,13 @@
       </div>
       
       <div class="flex justify-end space-x-3 p-6 border-t border-gray-700">
-        <button @click="$emit('close')" class="px-4 py-2 text-gray-400 hover:text-white" :disabled="updating">
+        <button @click="$emit('close')" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer" :disabled="updating">
           Cancel
         </button>
         <button 
           @click="handleSave" 
           :disabled="updating" 
-          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg transition-colors flex items-center space-x-2"
+          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg transition-colors flex items-center space-x- cursor-pointer"
         >
           <svg v-if="updating" class="animate-spin h-4 w-4" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>

@@ -15,13 +15,13 @@
           <p class="text-gray-400 mt-1">Manage all sensors across your hives</p>
         </div>
         <div class="flex space-x-3">
-          <button @click="showAddSensorModal = true" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+          <button @click="showAddSensorModal = true" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
             </svg>
             <span>Add Sensor</span>
           </button>
-          <button @click="refreshSensors" :disabled="loading" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+          <button @click="refreshSensors" :disabled="loading" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
             <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"/>
             </svg>
@@ -37,7 +37,7 @@
           <div class="flex items-center space-x-4">
             <button 
               @click="showFilters = !showFilters"
-              class="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              class="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors cursor-pointer"
             >
               <svg 
                 class="w-4 h-4 transform transition-transform" 
@@ -58,7 +58,7 @@
               </div>
               <button 
                 @click="clearFilters" 
-                class="text-xs text-blue-400 hover:text-blue-300 underline"
+                class="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer"
               >
                 Clear All
               </button>
@@ -92,7 +92,7 @@
               <button 
                 v-if="searchQuery"
                 @click="searchQuery = ''"
-                class="absolute right-3 top-3 text-gray-400 hover:text-gray-300"
+                class="absolute right-3 top-3 text-gray-400 hover:text-gray-300 cursor-pointer"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
@@ -153,7 +153,7 @@
               <button 
                 v-if="hasActiveFilters"
                 @click="clearFilters" 
-                class="text-blue-400 hover:text-blue-300 text-sm flex items-center space-x-1"
+                class="text-blue-400 hover:text-blue-300 text-sm flex items-center space-x-1 cursor-pointer"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
@@ -163,7 +163,7 @@
               
               <!-- Save/Load Filter Presets (Future feature) -->
               <button 
-                class="text-gray-400 hover:text-gray-300 text-sm"
+                class="text-gray-400 hover:text-gray-300 text-sm cursor-pointer"
                 disabled
                 title="Save filter presets (coming soon)"
               >
@@ -173,7 +173,7 @@
             
             <button 
               @click="showFilters = false"
-              class="text-gray-400 hover:text-gray-300 text-sm"
+              class="text-gray-400 hover:text-gray-300 text-sm cursor-pointer"
             >
               Hide Filters
             </button>
@@ -198,7 +198,7 @@
           </svg>
           <h3 class="text-lg font-semibold mb-2">Error Loading Sensors</h3>
           <p class="text-gray-300 mb-4">{{ error }}</p>
-          <button @click="refreshSensors" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+          <button @click="refreshSensors" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors cursor-pointer">
             Try Again
           </button>
         </div>
@@ -216,7 +216,7 @@
         <button 
           v-if="!hasActiveFilters" 
           @click="showAddSensorModal = true" 
-          class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+          class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors cursor-pointer"
         >
           Add First Sensor
         </button>
@@ -282,7 +282,7 @@
               <div class="flex items-center space-x-2">
                 <button 
                   @click="toggleSensorUuid(sensor.id)" 
-                  class="text-blue-400 hover:text-blue-300 text-xs"
+                  class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer"
                   :title="showSensorUuids[sensor.id] ? 'Hide UUID' : 'Show UUID'"
                 >
                   <svg v-if="showSensorUuids[sensor.id]" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -297,7 +297,7 @@
                 <button 
                   v-if="showSensorUuids[sensor.id] && sensor.uuid" 
                   @click="copyToClipboard(sensor.uuid, 'Sensor UUID')"
-                  class="text-gray-400 hover:text-white text-xs"
+                  class="text-gray-400 hover:text-white text-xs cursor-pointer"
                   title="Copy UUID"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -317,13 +317,13 @@
           <div class="flex justify-between">
             <button
               @click="openDeleteSensorModal(sensor)"
-              class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg text-sm transition-colors"
+              class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer"
             >
               Delete
             </button>
             <button
               @click="openSensorDetailModal(sensor)"
-              class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg text-sm transition-colors"
+              class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer"
             >
               Edit Details
             </button>
@@ -336,7 +336,7 @@
         <div class="bg-gray-800 rounded-lg w-full max-w-md">
           <div class="flex justify-between items-center p-6 border-b border-gray-700">
             <h3 class="text-xl font-semibold">Add New Sensor</h3>
-            <button @click="closeAddSensorModal" class="text-gray-400 hover:text-white">
+            <button @click="closeAddSensorModal" class="text-gray-400 hover:text-white cursor-pointer">
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
               </svg>
@@ -377,8 +377,8 @@
           </div>
           
           <div class="flex justify-end space-x-3 p-6 border-t border-gray-700">
-            <button @click="closeAddSensorModal" class="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
-            <button @click="addSensor" :disabled="!newSensor.sensor_type || addingSensor" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg">
+            <button @click="closeAddSensorModal" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">Cancel</button>
+            <button @click="addSensor" :disabled="!newSensor.sensor_type || addingSensor" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg cursor-pointer">
               {{ addingSensor ? 'Adding...' : 'Add Sensor' }}
             </button>
           </div>
@@ -432,7 +432,7 @@
             </div>
             
             <div class="flex justify-end space-x-3">
-              <button @click="closeDeleteSensorModal" class="px-4 py-2 text-gray-400 hover:text-white" :disabled="deletingSensor">
+              <button @click="closeDeleteSensorModal" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer" :disabled="deletingSensor">
                 Cancel
               </button>
               <button 
