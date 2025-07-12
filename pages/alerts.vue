@@ -6,7 +6,7 @@
     <!-- Main Content -->
     <div class="flex-1 p-6">
       <!-- Mobile Navigation Component -->
-      <MobileNavigation />
+      <MobileNavigation :alert-count="activeAlerts.length" />
 
       <!-- Header -->
       <div class="mb-6">
@@ -285,6 +285,24 @@
         </div>
       </div>
     </div>
+
+    <!-- Success/Error Toast (Simple Implementation) -->
+    <div v-if="toastMessage" class="fixed top-4 right-4 z-50 transition-all duration-300">
+      <div :class="[
+        'rounded-lg p-4 shadow-lg max-w-sm',
+        toastType === 'success' ? 'bg-green-600' : 'bg-red-600'
+      ]">
+        <div class="flex items-center space-x-3">
+          <svg v-if="toastType === 'success'" class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+          </svg>
+          <svg v-else class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
+          </svg>
+          <p class="text-white font-medium">{{ toastMessage }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -311,6 +329,10 @@ const resolvingAlert = ref(false)
 const resolveForm = ref({
   notes: ''
 })
+
+// Toast state
+const toastMessage = ref('')
+const toastType = ref('info')
 
 // Computed properties
 const activeAlerts = computed(() => alerts.value.filter(alert => !alert.resolved))
@@ -399,40 +421,73 @@ const closeResolveModal = () => {
   resolveForm.value.notes = ''
 }
 
+// Updated resolveAlert function with better error handling
 const resolveAlert = async () => {
   if (!selectedAlert.value) return
   
   resolvingAlert.value = true
   
   try {
-    const { data, error } = await $fetch(`/api/alerts/${selectedAlert.value.id}/resolve`, {
+    console.log('Resolving alert:', selectedAlert.value.id)
+    
+    const response = await $fetch(`/api/alerts/${selectedAlert.value.id}/resolve`, {
       method: 'PUT',
       body: {
-        resolved_by: 'User', // You might want to get actual user info
-        resolved_notes: resolveForm.value.notes || null
+        resolved_by: 'User', // You might want to get actual user info from auth
+        resolved_notes: resolveForm.value.notes?.trim() || null
       }
     })
     
-    if (!error && data) {
-      // Update local state
+    console.log('Resolve response:', response)
+    
+    if (response.success && response.data) {
+      // Update local state with the resolved alert data
       const alertIndex = alerts.value.findIndex(a => a.id === selectedAlert.value.id)
       if (alertIndex !== -1) {
-        alerts.value[alertIndex] = { ...alerts.value[alertIndex], ...data }
+        alerts.value[alertIndex] = { ...alerts.value[alertIndex], ...response.data }
       }
       
       closeResolveModal()
       
-      // Refresh if we're viewing active alerts only
+      // Show success message
+      showToast('Alert resolved successfully!', 'success')
+      
+      // Refresh alerts if we're viewing active alerts only
       if (selectedStatus.value === 'active') {
         await fetchAlerts()
       }
+    } else {
+      throw new Error(response.error || 'Failed to resolve alert')
     }
   } catch (err) {
     console.error('Error resolving alert:', err)
-    alert('Failed to resolve alert. Please try again.')
+    
+    let errorMessage = 'Failed to resolve alert. Please try again.'
+    
+    // Handle specific error messages from the API
+    if (err.data?.statusMessage) {
+      errorMessage = err.data.statusMessage
+    } else if (err.statusMessage) {
+      errorMessage = err.statusMessage
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+    
+    showToast(errorMessage, 'error')
   } finally {
     resolvingAlert.value = false
   }
+}
+
+// Helper function to show toast messages
+const showToast = (message, type = 'info') => {
+  toastMessage.value = message
+  toastType.value = type
+  
+  // Auto-hide toast after 4 seconds
+  setTimeout(() => {
+    toastMessage.value = ''
+  }, 4000)
 }
 
 const viewAlertDetails = (alert) => {
