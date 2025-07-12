@@ -4,78 +4,155 @@
     <SidebarNavigation :alert-count="activeAlerts.length" />
 
     <!-- Main Content -->
-    <div class="flex-1 p-6">
+    <div class="flex-1 p-3 sm:p-6">
       <!-- Mobile Navigation Component -->
       <MobileNavigation :alert-count="activeAlerts.length" />
 
       <!-- Header -->
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold mb-2">Alerts & Notifications</h1>
-        <p class="text-gray-400">Monitor and manage alerts from your beehive sensors</p>
+      <div class="mb-4 sm:mb-6">
+        <h1 class="text-xl sm:text-2xl font-bold mb-2">Alerts & Notifications</h1>
+        <p class="text-gray-400 text-sm sm:text-base">Monitor and manage alerts from your beehive sensors</p>
       </div>
 
       <!-- Summary Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-gray-900 rounded-2xl p-4">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div class="bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
               </svg>
             </div>
             <div>
-              <p class="text-2xl font-bold">{{ criticalAlerts.length }}</p>
-              <p class="text-sm text-gray-400">Critical Alerts</p>
+              <p class="text-lg sm:text-2xl font-bold">{{ criticalAlerts.length }}</p>
+              <p class="text-xs sm:text-sm text-gray-400">Critical</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-gray-900 rounded-2xl p-4">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-yellow-600 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <div class="bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-600 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
               </svg>
             </div>
             <div>
-              <p class="text-2xl font-bold">{{ warningAlerts.length }}</p>
-              <p class="text-sm text-gray-400">Warning Alerts</p>
+              <p class="text-lg sm:text-2xl font-bold">{{ warningAlerts.length }}</p>
+              <p class="text-xs sm:text-sm text-gray-400">Warning</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-gray-900 rounded-2xl p-4">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <div class="bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/>
               </svg>
             </div>
             <div>
-              <p class="text-2xl font-bold">{{ infoAlerts.length }}</p>
-              <p class="text-sm text-gray-400">Info Alerts</p>
+              <p class="text-lg sm:text-2xl font-bold">{{ infoAlerts.length }}</p>
+              <p class="text-xs sm:text-sm text-gray-400">Info</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-gray-900 rounded-2xl p-4">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <div class="bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
               </svg>
             </div>
             <div>
-              <p class="text-2xl font-bold">{{ resolvedAlertsCount }}</p>
-              <p class="text-sm text-gray-400">Resolved Today</p>
+              <p class="text-lg sm:text-2xl font-bold">{{ resolvedAlertsCount }}</p>
+              <p class="text-xs sm:text-sm text-gray-400">Resolved</p>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Filter Controls -->
-      <div class="bg-gray-900 rounded-2xl p-4 mb-6">
-        <div class="flex flex-wrap items-center gap-4">
+      <div class="bg-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6">
+        <!-- Mobile: Collapsible Filters -->
+        <div class="sm:hidden">
+          <button 
+            @click="showMobileFilters = !showMobileFilters"
+            class="w-full flex items-center justify-between text-sm font-medium text-gray-300 mb-3"
+          >
+            <span>Filters & Search</span>
+            <svg 
+              class="w-4 h-4 transform transition-transform" 
+              :class="{ 'rotate-180': showMobileFilters }"
+              fill="currentColor" 
+              viewBox="0 0 20 20"
+            >
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+            </svg>
+          </button>
+          
+          <div v-show="showMobileFilters" class="space-y-3">
+            <!-- Status Filter -->
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+              <select 
+                v-model="selectedStatus" 
+                @change="fetchAlerts"
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="active">Active Alerts</option>
+                <option value="resolved">Alert History</option>
+                <option value="all">All Alerts</option>
+              </select>
+            </div>
+
+            <!-- Hive Filter -->
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Hive</label>
+              <select 
+                v-model="selectedHive" 
+                @change="fetchAlerts"
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Hives</option>
+                <option v-for="hive in hives" :key="hive.id" :value="hive.id">
+                  {{ hive.name || `Hive ${hive.id}` }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Severity Filter -->
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Severity</label>
+              <select 
+                v-model="selectedSeverity" 
+                @change="applyFilters"
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Severities</option>
+                <option value="critical">Critical</option>
+                <option value="warning">Warning</option>
+                <option value="info">Info</option>
+              </select>
+            </div>
+
+            <!-- Refresh Button -->
+            <button 
+              @click="fetchAlerts" 
+              :disabled="loading"
+              class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2"
+            >
+              <svg v-if="loading" class="w-4 h-4 animate-spin" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"/>
+              </svg>
+              <span>{{ loading ? 'Loading...' : 'Refresh' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Desktop: Horizontal Filters -->
+        <div class="hidden sm:flex flex-wrap items-center gap-4">
           <!-- Status Filter -->
           <div class="flex items-center space-x-2">
             <label class="text-sm font-medium text-gray-300">Status:</label>
@@ -124,7 +201,7 @@
           <button 
             @click="fetchAlerts" 
             :disabled="loading"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
           >
             <svg v-if="loading" class="w-4 h-4 animate-spin" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"/>
@@ -135,36 +212,105 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading && alerts.length === 0" class="bg-gray-900 rounded-2xl p-12 text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p class="text-gray-400">Loading alerts...</p>
+      <div v-if="loading && alerts.length === 0" class="bg-gray-900 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center">
+        <div class="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <p class="text-gray-400 text-sm sm:text-base">Loading alerts...</p>
       </div>
 
       <!-- No Alerts State -->
-      <div v-else-if="filteredAlerts.length === 0" class="bg-gray-900 rounded-2xl p-12 text-center">
-        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+      <div v-else-if="filteredAlerts.length === 0" class="bg-gray-900 rounded-xl sm:rounded-2xl p-8 sm:p-12 text-center">
+        <svg class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
         </svg>
-        <h3 class="text-xl font-semibold mb-2">
+        <h3 class="text-lg sm:text-xl font-semibold mb-2">
           {{ selectedStatus === 'active' ? 'No Active Alerts' : selectedStatus === 'resolved' ? 'No Alert History' : 'No Alerts Found' }}
         </h3>
-        <p class="text-gray-400">
+        <p class="text-gray-400 text-sm sm:text-base">
           {{ selectedStatus === 'active' ? 'All systems are running normally' : 'No alerts match your current filters' }}
         </p>
       </div>
 
       <!-- Alerts List -->
-      <div v-else class="space-y-4">
+      <div v-else class="space-y-3 sm:space-y-4">
         <div 
           v-for="alert in filteredAlerts" 
           :key="alert.id"
           :class="[
-            'bg-gray-900 rounded-2xl p-6 border-l-4 transition-all duration-200',
+            'bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 transition-all duration-200',
             getSeverityClasses(alert.severity),
             !alert.resolved ? 'hover:bg-gray-800' : 'opacity-75'
           ]"
         >
-          <div class="flex justify-between items-start">
+          <!-- Mobile Layout -->
+          <div class="block sm:hidden">
+            <!-- Alert Header -->
+            <div class="flex items-center space-x-2 mb-3">
+              <div :class="['w-3 h-3 rounded-full', getSeverityDotClasses(alert.severity)]"></div>
+              <span :class="['px-2 py-1 rounded-full text-xs font-medium', getSeverityBadgeClasses(alert.severity)]">
+                {{ alert.severity.toUpperCase() }}
+              </span>
+              <span v-if="alert.resolved" class="px-2 py-1 bg-green-900/30 text-green-400 rounded-full text-xs font-medium">
+                RESOLVED
+              </span>
+            </div>
+
+            <!-- Title and Message -->
+            <h3 class="text-base font-semibold mb-2">{{ alert.title }}</h3>
+            <p class="text-gray-300 text-sm mb-3">{{ alert.message }}</p>
+            
+            <!-- Metadata - Mobile Grid -->
+            <div class="grid grid-cols-1 gap-2 text-xs mb-3">
+              <div class="flex justify-between">
+                <span class="text-gray-400">Hive:</span>
+                <span class="font-medium">{{ alert.hive_name }}</span>
+              </div>
+              <div v-if="alert.sensor_name" class="flex justify-between">
+                <span class="text-gray-400">Sensor:</span>
+                <span class="font-medium">{{ alert.sensor_name }}</span>
+              </div>
+              <div v-if="alert.threshold_value" class="flex justify-between">
+                <span class="text-gray-400">Threshold:</span>
+                <span class="font-medium">{{ alert.threshold_value }}</span>
+              </div>
+              <div v-if="alert.actual_value" class="flex justify-between">
+                <span class="text-gray-400">Actual:</span>
+                <span class="font-medium">{{ alert.actual_value }}</span>
+              </div>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-3">
+              <span>{{ formatDateTime(alert.created_at) }}</span>
+              <span v-if="alert.resolved_at">Resolved {{ formatDateTime(alert.resolved_at) }}</span>
+              <span v-if="alert.resolved_by">by {{ alert.resolved_by }}</span>
+            </div>
+
+            <!-- Resolution Notes -->
+            <div v-if="alert.resolved_notes" class="mb-3 p-3 bg-gray-800 rounded-lg">
+              <span class="text-xs text-gray-400">Resolution Notes:</span>
+              <p class="text-xs mt-1">{{ alert.resolved_notes }}</p>
+            </div>
+
+            <!-- Action Buttons - Mobile -->
+            <div class="flex space-x-2">
+              <button 
+                v-if="!alert.resolved" 
+                @click="openResolveModal(alert)"
+                class="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 rounded text-xs font-medium transition-colors"
+              >
+                Resolve
+              </button>
+              <button 
+                @click="viewAlertDetails(alert)"
+                class="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-xs font-medium transition-colors"
+              >
+                Details
+              </button>
+            </div>
+          </div>
+
+          <!-- Desktop Layout -->
+          <div class="hidden sm:flex justify-between items-start">
             <div class="flex-1">
               <!-- Alert Header -->
               <div class="flex items-center space-x-3 mb-2">
@@ -215,7 +361,7 @@
               </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Action Buttons - Desktop -->
             <div class="flex flex-col space-y-2 ml-4">
               <button 
                 v-if="!alert.resolved" 
@@ -238,18 +384,18 @@
 
     <!-- Resolve Alert Modal -->
     <div v-if="showResolveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-gray-800 rounded-lg w-full max-w-md">
-        <div class="flex justify-between items-center p-6 border-b border-gray-700">
-          <h3 class="text-xl font-semibold">Resolve Alert</h3>
+      <div class="bg-gray-800 rounded-lg w-full max-w-md mx-4">
+        <div class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-700">
+          <h3 class="text-lg sm:text-xl font-semibold">Resolve Alert</h3>
           <button @click="closeResolveModal" class="text-gray-400 hover:text-white">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
             </svg>
           </button>
         </div>
         
-        <div class="p-6">
-          <p class="text-gray-300 mb-4">
+        <div class="p-4 sm:p-6">
+          <p class="text-gray-300 mb-4 text-sm sm:text-base">
             Are you sure you want to resolve this alert?
           </p>
           <p class="text-sm text-gray-400 mb-4">
@@ -261,23 +407,23 @@
             <textarea 
               v-model="resolveForm.notes"
               rows="3"
-              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Add any notes about how this alert was resolved..."
             ></textarea>
           </div>
           
-          <div class="flex space-x-3">
+          <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
             <button 
               @click="resolveAlert" 
               :disabled="resolvingAlert"
-              class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+              class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-2 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
               <span v-if="resolvingAlert">Resolving...</span>
               <span v-else>Resolve Alert</span>
             </button>
             <button 
               @click="closeResolveModal"
-              class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+              class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
               Cancel
             </button>
@@ -299,7 +445,7 @@
           <svg v-else class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
           </svg>
-          <p class="text-white font-medium">{{ toastMessage }}</p>
+          <p class="text-white font-medium text-sm">{{ toastMessage }}</p>
         </div>
       </div>
     </div>
@@ -321,6 +467,7 @@ const hives = ref([])
 const selectedStatus = ref('active')
 const selectedHive = ref('')
 const selectedSeverity = ref('')
+const showMobileFilters = ref(false)
 
 // Modal state
 const showResolveModal = ref(false)

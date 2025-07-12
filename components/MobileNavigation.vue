@@ -16,7 +16,6 @@
     <!-- Mobile Menu -->
     <div v-if="isOpen" class="md:hidden mb-4 bg-gray-800 rounded shadow p-4 text-white">
       <NuxtLink to="/dashboard-v2" class="block py-2 hover:bg-gray-700 rounded px-2 transition-colors" @click="closeMenu">Dashboard</NuxtLink>
-      <NuxtLink to="/hives" class="block py-2 hover:bg-gray-700 rounded px-2 transition-colors" @click="closeMenu">Hives</NuxtLink>
       <NuxtLink to="/sensors" class="block py-2 hover:bg-gray-700 rounded px-2 transition-colors" @click="closeMenu">Sensors</NuxtLink>
       <NuxtLink to="/analytics" class="block py-2 hover:bg-gray-700 rounded px-2 transition-colors" @click="closeMenu">Analytics</NuxtLink>
       <NuxtLink to="/alerts" class="flex items-center py-2 hover:bg-gray-700 rounded px-2 transition-colors" @click="closeMenu">
