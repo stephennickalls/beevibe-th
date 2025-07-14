@@ -1,18 +1,26 @@
 export default defineNuxtConfig({
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase'],
   
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   
+  supabase: {
+    redirectOptions: {
+      login: '/auth/login',
+      callback: '/auth/callback',
+      exclude: ['/', '/auth/login', '/auth/register', '/auth/forgot-password']
+    }
+  },
+  
+  // Add this for debugging
+  ssr: false, // Disable SSR temporarily to isolate the issue
+  
   runtimeConfig: {
-    // Server-side only
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-    
-    // Public (available on both client and server)
     public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+      supabase: {
+        url: process.env.SUPABASE_URL,
+        key: process.env.SUPABASE_ANON_KEY
+      }
     }
   },
   
