@@ -14,12 +14,6 @@
           </svg>
         </NuxtLink>
         
-        <!-- <NuxtLink to="/hives" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
-          </svg>
-        </NuxtLink> -->
-        
         <NuxtLink to="/sensors" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path d="M13 7H7v6h6V7z"/>
@@ -40,6 +34,13 @@
           <div v-if="alertCount > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
             {{ alertCount }}
           </div>
+        </NuxtLink>
+        
+        <!-- Account Management Link -->
+        <NuxtLink to="/account" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+          </svg>
         </NuxtLink>
         
         <NuxtLink to="/settings" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors">

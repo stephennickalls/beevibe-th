@@ -1,8 +1,9 @@
-// middleware/auth.js - Supabase client-side authentication
-export default defineNuxtRouteMiddleware((to) => {
+// middleware/auth.ts
+export default defineNuxtRouteMiddleware((to, from) => {
+  const supabase = useSupabaseClient()
   const user = useSupabaseUser()
-  
-  // If user is not authenticated and trying to access protected route
+
+  // If no user is logged in, redirect to login
   if (!user.value) {
     return navigateTo('/auth/login')
   }
