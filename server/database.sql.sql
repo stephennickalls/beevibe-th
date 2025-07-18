@@ -17,8 +17,8 @@ CREATE TABLE public.alerts (
   created_at timestamp with time zone DEFAULT now(),
   resolved_at timestamp with time zone,
   CONSTRAINT alerts_pkey PRIMARY KEY (id),
-  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
-  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id)
+  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
+  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
 );
 CREATE TABLE public.daily_summaries (
   id integer NOT NULL DEFAULT nextval('daily_summaries_id_seq'::regclass),
@@ -55,7 +55,30 @@ CREATE TABLE public.hives (
   is_active boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT hives_pkey PRIMARY KEY (id)
+  user_id uuid,
+  created_by uuid,
+  CONSTRAINT hives_pkey PRIMARY KEY (id),
+  CONSTRAINT hives_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT hives_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.payments (
+  id integer NOT NULL DEFAULT nextval('payments_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  subscription_id integer,
+  stripe_payment_intent_id character varying UNIQUE,
+  stripe_charge_id character varying,
+  amount numeric NOT NULL,
+  currency character varying DEFAULT 'USD'::character varying,
+  status character varying NOT NULL,
+  payment_method character varying,
+  failure_reason text,
+  refunded_amount numeric DEFAULT 0,
+  description text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT payments_pkey PRIMARY KEY (id),
+  CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT payments_subscription_id_fkey FOREIGN KEY (subscription_id) REFERENCES public.user_subscriptions(id)
 );
 CREATE TABLE public.queen_status (
   id integer NOT NULL DEFAULT nextval('queen_status_id_seq'::regclass),
@@ -87,8 +110,8 @@ CREATE TABLE public.sensor_readings (
   signal_strength integer,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT sensor_readings_pkey PRIMARY KEY (id),
-  CONSTRAINT sensor_readings_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
-  CONSTRAINT sensor_readings_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
+  CONSTRAINT sensor_readings_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
+  CONSTRAINT sensor_readings_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id)
 );
 CREATE TABLE public.sensors (
   id integer NOT NULL DEFAULT nextval('sensors_id_seq'::regclass),
@@ -105,4 +128,57 @@ CREATE TABLE public.sensors (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT sensors_pkey PRIMARY KEY (id),
   CONSTRAINT sensors_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
+);
+CREATE TABLE public.subscription_plans (
+  id integer NOT NULL DEFAULT nextval('subscription_plans_id_seq'::regclass),
+  name character varying NOT NULL UNIQUE,
+  display_name character varying NOT NULL,
+  description text,
+  price_monthly numeric NOT NULL,
+  price_yearly numeric,
+  stripe_price_id_monthly character varying UNIQUE,
+  stripe_price_id_yearly character varying UNIQUE,
+  stripe_product_id character varying UNIQUE,
+  features jsonb NOT NULL DEFAULT '{}'::jsonb,
+  limits jsonb NOT NULL DEFAULT '{}'::jsonb,
+  is_active boolean DEFAULT true,
+  sort_order integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT subscription_plans_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.user_profiles (
+  id uuid NOT NULL,
+  username character varying UNIQUE,
+  first_name character varying,
+  last_name character varying,
+  phone character varying,
+  company_name character varying,
+  avatar_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.user_subscriptions (
+  id integer NOT NULL DEFAULT nextval('user_subscriptions_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  plan_id integer NOT NULL,
+  stripe_subscription_id character varying UNIQUE,
+  stripe_customer_id character varying,
+  status character varying NOT NULL DEFAULT 'inactive'::character varying,
+  billing_cycle character varying NOT NULL DEFAULT 'monthly'::character varying,
+  current_period_start timestamp with time zone,
+  current_period_end timestamp with time zone,
+  trial_start timestamp with time zone,
+  trial_end timestamp with time zone,
+  canceled_at timestamp with time zone,
+  cancellation_reason text,
+  next_billing_date timestamp with time zone,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT user_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.subscription_plans(id),
+  CONSTRAINT user_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );

@@ -1,4 +1,4 @@
-<!-- pages/auth/register.vue -->
+<!-- pages/auth/register.vue - Optimized version -->
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 font-open-sans flex items-center justify-center p-4">
     <!-- Main Container -->
@@ -56,6 +56,9 @@
             <NuxtLink to="/auth/login" class="text-brand-yellow hover:text-brand-yellow-hover font-medium underline">
               Sign in
             </NuxtLink>
+          </p>
+          <p class="text-xs text-gray-500 mt-2">
+            If you already have an account with this email, you won't receive a new confirmation email.
           </p>
         </div>
 
@@ -176,7 +179,7 @@
 
           <!-- Success Message -->
           <div v-if="success" class="bg-green-900 bg-opacity-50 border border-green-500 rounded-lg p-4">
-            <p class="text-green-300 text-sm">{{ success }}</p>
+            <p class="text-green-300 text-sm font-medium">{{ success }}</p>
           </div>
 
           <!-- Submit Button -->
@@ -210,7 +213,9 @@
         <div class="grid grid-cols-2 gap-4">
           <button
             type="button"
-            class="flex items-center justify-center px-4 py-3 border border-gray-700 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white transition-all font-medium"
+            @click="signUpWithGoogle"
+            :disabled="loading"
+            class="flex items-center justify-center px-4 py-3 border border-gray-700 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -222,7 +227,9 @@
           </button>
           <button
             type="button"
-            class="flex items-center justify-center px-4 py-3 border border-gray-700 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white transition-all font-medium"
+            @click="signUpWithApple"
+            :disabled="loading"
+            class="flex items-center justify-center px-4 py-3 border border-gray-700 rounded-lg bg-gray-800 hover:bg-gray-750 text-gray-300 hover:text-white transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
@@ -236,8 +243,9 @@
 </template>
 
 <script setup>
+// Use guest middleware instead of auth: false
 definePageMeta({
-  auth: false
+  middleware: 'guest'
 })
 
 const supabase = useSupabaseClient()
@@ -301,17 +309,103 @@ const handleRegister = async () => {
       return
     }
 
-    if (data.user && !data.user.email_confirmed_at) {
-      success.value = 'Please check your email for a confirmation link'
+    if (data.user && data.session) {
+      // User was created and automatically signed in
+      success.value = 'Account created successfully!'
+      
+      // Create user profile in database
+      await createUserProfile(data.user)
+      
+      setTimeout(() => {
+        router.push('/dashboard-v2')
+      }, 1500)
+    } else if (data.user && !data.session) {
+      // User needs email confirmation
+      success.value = 'Please check your email for a confirmation link to activate your account.'
     } else {
-      // Success! Redirect to dashboard
-      await router.push('/dashboard-v2')
+      // Email already exists
+      success.value = 'If an account with this email already exists, you will not receive a new confirmation email. Please try signing in instead.'
     }
     
   } catch (err) {
-    error.value = 'An unexpected error occurred'
+    error.value = 'An unexpected error occurred. Please try again.'
     console.error('Registration error:', err)
   } finally {
+    loading.value = false
+  }
+}
+
+// Create user profile in database
+const createUserProfile = async (user) => {
+  try {
+    const { error } = await supabase
+      .from('user_profiles')
+      .insert([
+        {
+          id: user.id,
+          first_name: form.value.firstName,
+          last_name: form.value.lastName,
+          username: `${form.value.firstName.toLowerCase()}_${form.value.lastName.toLowerCase()}_${Date.now()}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ])
+
+    if (error) {
+      console.error('Error creating user profile:', error)
+    }
+  } catch (err) {
+    console.error('Error creating user profile:', err)
+  }
+}
+
+// Social registration functions
+const signUpWithGoogle = async () => {
+  if (loading.value) return
+  
+  loading.value = true
+  error.value = ''
+
+  try {
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard-v2`
+      }
+    })
+
+    if (authError) {
+      error.value = authError.message
+      loading.value = false
+    }
+  } catch (err) {
+    error.value = 'An unexpected error occurred'
+    console.error('Google signup error:', err)
+    loading.value = false
+  }
+}
+
+const signUpWithApple = async () => {
+  if (loading.value) return
+  
+  loading.value = true
+  error.value = ''
+
+  try {
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard-v2`
+      }
+    })
+
+    if (authError) {
+      error.value = authError.message
+      loading.value = false
+    }
+  } catch (err) {
+    error.value = 'An unexpected error occurred'
+    console.error('Apple signup error:', err)
     loading.value = false
   }
 }
