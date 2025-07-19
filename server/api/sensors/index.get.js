@@ -1,53 +1,44 @@
-// server/api/sensors/index.get.js
-import { createClient } from '@supabase/supabase-js'
-
+// server/api/sensors/index.get.js - GET all sensors for user
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const query = getQuery(event)
-
-  const supabase = createClient(
-    config.public.supabaseUrl, 
-    config.public.supabaseAnonKey
-  )
+  const supabase = serverSupabaseClient(event)
   
   try {
-    let sensorsQuery = supabase
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Authentication required'
+      })
+    }
+
+    // Get only user's sensors
+    const { data: sensors, error } = await supabase
       .from('sensors')
-      .select('*')
+      .select(`
+        *,
+        hives (
+          id,
+          name
+        )
+      `)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
-    // Filter by hive_id if provided
-    if (query.hive_id) {
-      // Handle both UUID and integer hive IDs
-      const hiveId = query.hive_id
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hiveId)
-      
-      if (isUUID) {
-        // If UUID, we need to first get the hive's integer ID
-        const { data: hive } = await supabase
-          .from('hives')
-          .select('id')
-          .eq('uuid', hiveId)
-          .single()
-        
-        if (hive) {
-          sensorsQuery = sensorsQuery.eq('hive_id', hive.id)
-        } else {
-          // If hive not found, return empty array
-          return { data: [] }
-        }
-      } else {
-        // If integer ID, use directly
-        sensorsQuery = sensorsQuery.eq('hive_id', parseInt(hiveId))
-      }
+    if (error) throw error
+
+    return { data: sensors }
+    
+  } catch (error) {
+    if (error.statusCode) {
+      throw error
     }
     
-    const { data, error } = await sensorsQuery
-    
-    if (error) throw error
-    
-    return { data }
-  } catch (error) {
-    return { error: error.message }
+    console.error('Sensors fetch error:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Failed to fetch sensors'
+    })
   }
 })

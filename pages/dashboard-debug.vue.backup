@@ -1,0 +1,265 @@
+<template>
+  <div class="min-h-screen bg-gray-900 text-white p-6">
+    <h1 class="text-2xl font-bold mb-6">Dashboard Debug</h1>
+    
+    <!-- Debug Information -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- User Info -->
+      <div class="bg-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-2">User Information</h2>
+        <div v-if="user">
+          <p><strong>Email:</strong> {{ user.email }}</p>
+          <p><strong>ID:</strong> {{ user.id }}</p>
+          <p><strong>Created:</strong> {{ new Date(user.created_at).toLocaleDateString() }}</p>
+        </div>
+        <div v-else class="text-red-400">
+          No user found
+        </div>
+      </div>
+
+      <!-- Subscription Info -->
+      <div class="bg-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-2">Subscription Information</h2>
+        <div v-if="subscriptionLoading" class="text-blue-400">
+          Loading subscription...
+        </div>
+        <div v-else-if="subscription">
+          <p><strong>Plan:</strong> {{ subscription.planDisplayName || subscription.plan }}</p>
+          <p><strong>Active:</strong> {{ subscription.hasActiveSubscription ? 'Yes' : 'No' }}</p>
+          <div v-if="subscription.limits">
+            <p><strong>Hive Limit:</strong> {{ subscription.limits.max_hives === -1 ? 'Unlimited' : subscription.limits.max_hives }}</p>
+            <p><strong>Sensor Limit:</strong> {{ subscription.limits.max_sensors_total === -1 ? 'Unlimited' : subscription.limits.max_sensors_total }}</p>
+            <p><strong>Sensors per Hive:</strong> {{ subscription.limits.max_sensors_per_hive === -1 ? 'Unlimited' : subscription.limits.max_sensors_per_hive }}</p>
+          </div>
+        </div>
+        <div v-else class="text-red-400">
+          No subscription data
+        </div>
+      </div>
+
+      <!-- Current Usage -->
+      <div class="bg-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-2">Current Usage</h2>
+        <div v-if="usageLoading" class="text-blue-400">
+          Loading usage...
+        </div>
+        <div v-else>
+          <p><strong>Hives:</strong> {{ currentUsage.hives }}</p>
+          <p><strong>Sensors:</strong> {{ currentUsage.sensors }}</p>
+        </div>
+      </div>
+
+      <!-- Error Display -->
+      <div class="bg-gray-800 rounded-lg p-4">
+        <h2 class="text-lg font-semibold mb-2">Errors</h2>
+        <div v-if="errors.length === 0" class="text-green-400">
+          No errors detected
+        </div>
+        <div v-else>
+          <div v-for="error in errors" :key="error" class="text-red-400 mb-2">
+            {{ error }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Buttons -->
+    <div class="bg-gray-800 rounded-lg p-4 mb-6">
+      <h2 class="text-lg font-semibold mb-4">Test Actions</h2>
+      <div class="flex flex-wrap gap-4">
+        <button 
+          @click="testAPICall('/api/hives')" 
+          class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+        >
+          Test Hives API
+        </button>
+        <button 
+          @click="testAPICall('/api/sensors')" 
+          class="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
+        >
+          Test Sensors API
+        </button>
+        <button 
+          @click="reloadSubscription" 
+          class="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
+        >
+          Reload Subscription
+        </button>
+        <button 
+          @click="testAPICall('/api/hives-debug')" 
+          class="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+        >
+          Test Hives Debug
+        </button>
+        <button 
+          @click="debugAuth" 
+          class="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-700"
+        >
+          Debug Auth Token
+        </button>
+      </div>
+    </div>
+
+    <!-- API Response Display -->
+    <div v-if="lastAPIResponse" class="bg-gray-800 rounded-lg p-4">
+      <h2 class="text-lg font-semibold mb-2">Last API Response</h2>
+      <pre class="bg-gray-900 p-4 rounded text-sm overflow-auto">{{ JSON.stringify(lastAPIResponse, null, 2) }}</pre>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+
+// Meta
+definePageMeta({
+  title: 'Dashboard Debug - BeeVibe',
+  middleware: ['auth']
+})
+
+// Composables
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
+const { subscription, loadSubscription } = useSubscription()
+
+// Reactive data
+const subscriptionLoading = ref(false)
+const usageLoading = ref(false)
+const errors = ref([])
+const currentUsage = ref({
+  hives: 0,
+  sensors: 0
+})
+const lastAPIResponse = ref(null)
+
+// Methods
+const addError = (error) => {
+  console.error('Dashboard error:', error)
+  errors.value.push(typeof error === 'string' ? error : error.message || 'Unknown error')
+}
+
+const reloadSubscription = async () => {
+  try {
+    subscriptionLoading.value = true
+    await loadSubscription()
+    console.log('Subscription reloaded:', subscription.value)
+  } catch (error) {
+    addError(`Subscription load error: ${error.message}`)
+  } finally {
+    subscriptionLoading.value = false
+  }
+}
+
+const debugAuth = async () => {
+  try {
+    console.log('=== AUTH DEBUG START ===')
+    console.log('User from composable:', user.value)
+    
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    console.log('Session error:', sessionError)
+    console.log('Session:', session)
+    
+    if (session) {
+      console.log('Access token preview:', session.access_token?.substring(0, 50) + '...')
+      console.log('Token expires at:', new Date(session.expires_at * 1000).toISOString())
+      console.log('User from session:', session.user?.id)
+    }
+    
+    // Try to refresh the session
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+    console.log('Refresh error:', refreshError)
+    console.log('Refresh successful:', !!refreshData.session)
+    
+    lastAPIResponse.value = {
+      endpoint: 'auth-debug',
+      success: true,
+      data: {
+        user_from_composable: !!user.value,
+        session_exists: !!session,
+        token_exists: !!session?.access_token,
+        token_preview: session?.access_token?.substring(0, 20) + '...',
+        user_id: session?.user?.id,
+        expires_at: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : null
+      },
+      timestamp: new Date().toISOString()
+    }
+    
+  } catch (error) {
+    console.error('Auth debug error:', error)
+    addError(`Auth debug failed: ${error.message}`)
+  }
+}
+
+const testAPICall = async (endpoint) => {
+  try {
+    console.log(`Testing API call to ${endpoint}`)
+    
+    // Debug: Check if user exists
+    console.log('User from composable:', user.value?.id)
+    
+    // Get session with more detailed logging
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    console.log('Session error:', sessionError)
+    console.log('Session exists:', !!session)
+    console.log('Access token exists:', !!session?.access_token)
+    console.log('Token preview:', session?.access_token?.substring(0, 20) + '...')
+    
+    if (sessionError) {
+      throw new Error(`Session error: ${sessionError.message}`)
+    }
+    
+    if (!session) {
+      throw new Error('No valid session found - user may need to re-login')
+    }
+    
+    if (!session.access_token) {
+      throw new Error('No access token in session')
+    }
+
+    console.log('Making API call with auth header...')
+    const response = await $fetch(endpoint, {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    lastAPIResponse.value = {
+      endpoint,
+      success: true,
+      data: response,
+      timestamp: new Date().toISOString()
+    }
+    
+    console.log(`API call to ${endpoint} successful:`, response)
+    
+  } catch (error) {
+    console.error(`API call to ${endpoint} failed:`, error)
+    
+    lastAPIResponse.value = {
+      endpoint,
+      success: false,
+      error: error.message,
+      full_error: error,
+      timestamp: new Date().toISOString()
+    }
+    
+    addError(`API call to ${endpoint} failed: ${error.message}`)
+  }
+}
+
+// Lifecycle
+onMounted(async () => {
+  console.log('Dashboard debug mounted')
+  console.log('User:', user.value)
+  
+  // Clear previous errors
+  errors.value = []
+  
+  // Load subscription
+  await reloadSubscription()
+  
+  // Load usage
+  await reloadUsage()
+})
+</script>

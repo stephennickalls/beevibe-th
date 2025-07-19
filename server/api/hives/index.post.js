@@ -1,40 +1,15 @@
-// server/api/hives/index.post.js
-import { createClient } from '@supabase/supabase-js'
-
+// server/api/hives/index.post.js - Updated with new subscription limits
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-
-  // Create service role client for admin operations
-  const supabaseAdmin = createClient(
-    config.public.supabaseUrl, 
-    config.supabaseAnonKey // This should be service role key for admin operations
-  )
-
-  // Create user client for authentication
-  const supabase = createClient(
-    config.public.supabaseUrl, 
-    config.public.supabaseAnonKey
-  )
+  const supabase = serverSupabaseClient(event)
   
   try {
-    // Get authenticated user from request
-    const authHeader = getHeader(event, 'authorization')
-    if (!authHeader) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'No authorization header'
-      })
-    }
-
-    // Set the auth header for the supabase client
-    supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-    
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       throw createError({
         statusCode: 401,
-        statusMessage: 'Unauthorized'
+        statusMessage: 'Authentication required'
       })
     }
 
@@ -49,48 +24,13 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Check user's subscription and limits
-    const { data: subscription, error: subError } = await supabaseAdmin
-      .from('user_subscriptions')
-      .select(`
-        status,
-        plan:subscription_plans(
-          name,
-          limits
-        )
-      `)
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single()
-
-    if (subError || !subscription) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'No active subscription found. Please subscribe to create hives.'
-      })
-    }
-
-    // Count user's current hives
-    const { count: currentHiveCount, error: countError } = await supabaseAdmin
-      .from('hives')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-
-    if (countError) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Error checking hive count'
-      })
-    }
-
-    // Check if user has reached their hive limit
-    const maxHives = subscription.plan?.limits?.max_hives || 0
+    // Check subscription limits
+    const limitCheck = await checkSubscriptionLimits(event, user.id, 'create_hive')
     
-    if (maxHives !== -1 && currentHiveCount >= maxHives) {
+    if (!limitCheck.allowed) {
       throw createError({
         statusCode: 403,
-        statusMessage: `Hive limit reached for ${subscription.plan?.name} plan (${maxHives} hives). Please upgrade your plan to add more hives.`
+        statusMessage: limitCheck.reason
       })
     }
 
@@ -106,8 +46,8 @@ export default defineEventHandler(async (event) => {
       is_active: body.is_active !== undefined ? body.is_active : true
     }
 
-    // Insert into database using service role for RLS bypass during creation
-    const { data, error } = await supabaseAdmin
+    // Insert into database
+    const { data, error } = await supabase
       .from('hives')
       .insert([newHive])
       .select()
@@ -118,19 +58,19 @@ export default defineEventHandler(async (event) => {
     return { 
       data,
       subscription_info: {
-        plan: subscription.plan?.name,
-        hives_used: currentHiveCount + 1,
-        hives_limit: maxHives
+        plan: limitCheck.plan,
+        hives_used: limitCheck.currentUsage.hives + 1,
+        hives_limit: limitCheck.limits.max_hives,
+        sensors_used: limitCheck.currentUsage.sensors,
+        sensors_limit: limitCheck.limits.max_sensors_total
       }
     }
     
   } catch (error) {
-    // Handle known errors
     if (error.statusCode) {
       throw error
     }
     
-    // Handle unexpected errors
     console.error('Hive creation error:', error)
     throw createError({
       statusCode: 500,
@@ -138,3 +78,4 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
+

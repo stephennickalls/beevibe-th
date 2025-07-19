@@ -1,0 +1,85 @@
+// server/middleware/subscription.js - Fixed to handle auth itself
+import { createClient } from '@supabase/supabase-js'
+
+export default defineEventHandler(async (event) => {
+  // Routes that require subscription checks
+  const subscriptionRoutes = [
+    '/api/hives',
+    '/api/sensors',
+    '/api/advanced-analytics'
+  ]
+
+  const needsSubscriptionCheck = subscriptionRoutes.some(route => 
+    event.node.req.url?.startsWith(route)
+  )
+
+  if (!needsSubscriptionCheck) return
+
+  try {
+    // Handle authentication ourselves since we don't have auth middleware
+    const authHeader = getHeader(event, 'authorization')
+    
+    if (!authHeader) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'No authorization header provided'
+      })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    
+    if (!token) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'No token provided'
+      })
+    }
+
+    // Authenticate user with Supabase
+    const config = useRuntimeConfig()
+    const supabaseUrl = config.public?.supabaseUrl
+    const supabaseKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Server configuration error'
+      })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+
+    if (authError || !user) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Invalid or expired token'
+      })
+    }
+
+    // Add user to context
+    event.context.user = user
+
+    // Check subscription status using the utility we already have
+    const subscriptionInfo = await checkUserSubscription(event, user.id)
+    
+    // For now, let's be permissive and allow all authenticated users
+    // You can tighten this later if needed
+    console.log('User subscription:', subscriptionInfo.plan)
+    
+    // Add subscription info to context
+    event.context.subscription = subscriptionInfo
+
+  } catch (error) {
+    console.error('Subscription middleware error:', error)
+    
+    if (error.statusCode) {
+      throw error
+    }
+    
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Authentication failed'
+    })
+  }
+})
