@@ -24,7 +24,6 @@
           <!-- Auth Section -->
           <div class="flex items-center space-x-4">
             <div v-if="user" class="flex items-center space-x-4">
-              <span class="text-gray-300 text-sm">Welcome back, {{ getUserName() }}</span>
               <NuxtLink 
                 to="/dashboard-v2" 
                 class="bg-brand-yellow hover:bg-brand-yellow-hover text-black font-semibold px-6 py-2 rounded-lg transition-colors"

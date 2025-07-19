@@ -8,8 +8,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   
   supabase: {
-    url: 'https://jodtcluxbgohacounvyf.supabase.co',
-    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyNTU2NTAsImV4cCI6MjA1MjgzMTY1MH0.uaeJVW8SdAOreMwjAeT7nkvpQStNXwfDXpu2i5YYXEk',
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_ANON_KEY,
+    
     redirectOptions: {
       login: '/auth/login',
       callback: '/confirm',
@@ -18,14 +19,15 @@ export default defineNuxtConfig({
   },
   
   runtimeConfig: {
-    // Server-side
-    supabaseUrl: 'https://jodtcluxbgohacounvyf.supabase.co',
-    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyNTU2NTAsImV4cCI6MjA1MjgzMTY1MH0.uaeJVW8SdAOreMwjAeT7nkvpQStNXwfDXpu2i5YYXEk',
+    // Server-side (private)
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     
-    // Public
+    // Public (exposed to client-side)
     public: {
-      supabaseUrl: 'https://jodtcluxbgohacounvyf.supabase.co',
-      supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyNTU2NTAsImV4cCI6MjA1MjgzMTY1MH0.uaeJVW8SdAOreMwjAeT7nkvpQStNXwfDXpu2i5YYXEk'
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY
     }
   },
   

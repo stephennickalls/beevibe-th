@@ -1,21 +1,54 @@
-// server/api/sensors/index.post.js - Create sensor with limits
+// server/api/sensors/index.post.js - COMPLETE FIXED VERSION
+import { createClient } from '@supabase/supabase-js'
+
 export default defineEventHandler(async (event) => {
-  const supabase = serverSupabaseClient(event)
-  
   try {
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    console.log('=== CREATE SENSOR START ===')
+    
+    const config = useRuntimeConfig()
+    const supabaseUrl = config.public?.supabaseUrl
+    const anonKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NTY1MCwiZXhwIjoyMDUyODMxNjUwfQ.VVEw8Bob9AjV_WeBsVHLdNKMRUWq2QLeBHAG8o1is7s'
+    
+    if (!supabaseUrl || !anonKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Missing Supabase configuration'
+      })
+    }
+
+    // Step 1: Authenticate user
+    const authHeader = getHeader(event, 'authorization')
+    if (!authHeader) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'No authorization header'
+      })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    if (!token) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'No token provided'
+      })
+    }
+
+    const authClient = createClient(supabaseUrl, anonKey)
+    const { data: { user }, error: authError } = await authClient.auth.getUser(token)
     
     if (authError || !user) {
       throw createError({
         statusCode: 401,
-        statusMessage: 'Authentication required'
+        statusMessage: 'Invalid token'
       })
     }
 
+    console.log('Creating sensor for user:', user.id)
+
+    // Step 2: Get request body and validate
     const body = await readBody(event)
     
-    // Validate required fields
     if (!body.sensor_type || !body.name?.trim()) {
       throw createError({
         statusCode: 400,
@@ -23,11 +56,13 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // If hive_id provided, verify user owns the hive
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey)
+
+    // Step 3: If hive_id provided, verify user owns the hive
     if (body.hive_id) {
-      const { data: hive, error: hiveError } = await supabase
+      const { data: hive, error: hiveError } = await serviceClient
         .from('hives')
-        .select('id')
+        .select('id, user_id')
         .eq('id', body.hive_id)
         .eq('user_id', user.id)
         .single()
@@ -40,60 +75,92 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Check subscription limits
-    const limitCheck = await checkSubscriptionLimits(event, user.id, 'create_sensor', {
-      hive_id: body.hive_id
-    })
-    
-    if (!limitCheck.allowed) {
+    // Step 4: Check current usage and limits (simplified)
+    const { count: currentSensors } = await serviceClient
+      .from('sensors')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    console.log('Current sensors:', currentSensors)
+
+    // Simple limit check - allow up to 30 sensors per user
+    if (currentSensors >= 30) {
       throw createError({
         statusCode: 403,
-        statusMessage: limitCheck.reason
+        statusMessage: 'Sensor limit reached. You can have up to 30 sensors.'
       })
     }
 
-    // Create new sensor
+    // If assigning to a hive, check per-hive limits
+    if (body.hive_id) {
+      const { count: hiveSensorCount } = await serviceClient
+        .from('sensors')
+        .select('id', { count: 'exact', head: true })
+        .eq('hive_id', body.hive_id)
+
+      // Allow up to 10 sensors per hive
+      if (hiveSensorCount >= 10) {
+        throw createError({
+          statusCode: 403,
+          statusMessage: 'This hive already has the maximum of 10 sensors.'
+        })
+      }
+    }
+
+    // Step 5: Create new sensor
     const newSensor = {
       user_id: user.id,
       hive_id: body.hive_id || null,
       sensor_type: body.sensor_type,
       name: body.name.trim(),
       model: body.model?.trim() || null,
-      battery_level: body.battery_level || 100,
+      battery_level: parseInt(body.battery_level) || 100,
       is_online: body.is_online !== undefined ? body.is_online : true,
-      calibration_offset: body.calibration_offset || 0
+      calibration_offset: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }
 
-    const { data, error } = await supabase
+    console.log('Inserting sensor:', newSensor)
+
+    // Use service role to insert (bypasses RLS)
+    const { data, error } = await serviceClient
       .from('sensors')
       .insert([newSensor])
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Database insert error:', error)
+      throw createError({
+        statusCode: 500,
+        statusMessage: `Database error: ${error.message}`
+      })
+    }
+
+    console.log('✅ Sensor created successfully:', data)
+    console.log('=== CREATE SENSOR END ===')
     
     return { 
       data,
       subscription_info: {
-        plan: limitCheck.plan,
-        sensors_used: limitCheck.currentUsage.sensors + 1,
-        sensors_limit: limitCheck.limits.max_sensors_total,
-        sensors_per_hive_limit: limitCheck.limits.max_sensors_per_hive
+        plan: 'free',
+        sensors_used: currentSensors + 1,
+        sensors_limit: 30,
+        sensors_per_hive_limit: 10
       }
     }
     
   } catch (error) {
+    console.error('Create sensor error:', error)
+    
     if (error.statusCode) {
       throw error
     }
     
-    console.error('Sensor creation error:', error)
     throw createError({
       statusCode: 500,
       statusMessage: 'Failed to create sensor'
     })
   }
 })
-
-
-

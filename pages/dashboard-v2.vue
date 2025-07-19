@@ -294,6 +294,27 @@
       </div>
     </div>
 
+    <!-- Add Hive Modal -->
+    <AddHiveModal
+      :show="showAddHiveModal"
+      :creating="creatingHive"
+      :subscription="subscription"
+      :current-usage="currentUsage"
+      @close="showAddHiveModal = false"
+      @create="handleCreateHive"
+    />
+
+    <!-- Add Sensor Modal -->
+    <AddSensorModal
+      :show="showAddSensorModal"
+      :creating="creatingSensor"
+      :available-hives="recentHives"
+      :subscription="subscription"
+      :current-usage="currentUsage"
+      @close="showAddSensorModal = false"
+      @create="handleCreateSensor"
+    />
+
     <!-- Upgrade Modal -->
     <div v-if="showUpgradeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div class="bg-gray-800 rounded-lg w-full max-w-md">
@@ -340,6 +361,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import AddHiveModal from '~/components/AddHiveModal.vue'
+import AddSensorModal from '~/components/AddSensorModal.vue'
 
 // Meta with auth middleware
 definePageMeta({
@@ -372,7 +395,13 @@ const currentUsage = ref({
 // UI State
 const showUpgradeBanner = ref(false)
 const showUpgradeModal = ref(false)
+const showAddHiveModal = ref(false)
+const showAddSensorModal = ref(false)
 const upgradeModalMessage = ref('')
+
+// Loading states
+const creatingHive = ref(false)
+const creatingSensor = ref(false)
 
 // Computed properties
 const canAddHive = computed(() => {
@@ -421,7 +450,7 @@ const formatDate = (dateString) => {
 
 const handleAddHive = () => {
   if (canAddHive.value) {
-    navigateTo('/hives/create')
+    showAddHiveModal.value = true
   } else {
     upgradeModalMessage.value = `You've reached the hive limit for your ${subscription.value?.planDisplayName} plan. Upgrade to add more hives.`
     showUpgradeModal.value = true
@@ -430,10 +459,98 @@ const handleAddHive = () => {
 
 const handleAddSensor = () => {
   if (canAddSensor.value) {
-    navigateTo('/sensors/create')
+    showAddSensorModal.value = true
   } else {
     upgradeModalMessage.value = `You've reached the sensor limit for your ${subscription.value?.planDisplayName} plan. Upgrade to add more sensors.`
     showUpgradeModal.value = true
+  }
+}
+
+const handleCreateHive = async (hiveData) => {
+  creatingHive.value = true
+  
+  try {
+    // Get auth token for API calls
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !session) {
+      throw new Error('No valid session found')
+    }
+
+    const authHeaders = {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
+    }
+
+    const response = await $fetch('/api/hives', {
+      method: 'POST',
+      headers: authHeaders,
+      body: hiveData
+    })
+
+    if (response.data) {
+      // Add the new hive to the list
+      recentHives.value.unshift(response.data)
+      
+      // Update stats
+      stats.value.totalHives++
+      currentUsage.value.hives++
+      
+      // Close modal
+      showAddHiveModal.value = false
+      
+      // Show success message or redirect
+      console.log('Hive created successfully:', response.data)
+    }
+  } catch (err) {
+    console.error('Error creating hive:', err)
+    // You might want to show an error message to the user
+    alert('Failed to create hive. Please try again.')
+  } finally {
+    creatingHive.value = false
+  }
+}
+
+const handleCreateSensor = async (sensorData) => {
+  creatingSensor.value = true
+  
+  try {
+    // Get auth token for API calls
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !session) {
+      throw new Error('No valid session found')
+    }
+
+    const authHeaders = {
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
+    }
+
+    const response = await $fetch('/api/sensors', {
+      method: 'POST',
+      headers: authHeaders,
+      body: sensorData
+    })
+
+    if (response.data) {
+      // Update stats
+      stats.value.activeSensors++
+      currentUsage.value.sensors++
+      
+      // Close modal
+      showAddSensorModal.value = false
+      
+      // Show success message
+      console.log('Sensor created successfully:', response.data)
+      
+      // Optionally refresh the dashboard data to show the new sensor
+      await fetchDashboardData()
+    }
+  } catch (err) {
+    console.error('Error creating sensor:', err)
+    // You might want to show an error message to the user
+    alert('Failed to create sensor. Please try again.')
+  } finally {
+    creatingSensor.value = false
   }
 }
 
@@ -515,3 +632,4 @@ onMounted(async () => {
   background-color: #374151;
 }
 </style>
+
