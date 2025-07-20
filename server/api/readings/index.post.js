@@ -1,146 +1,131 @@
-// server/api/readings/index.post.js - Create reading (for sensors)
+// server/api/hives/index.post.js - FIXED WITH SUBSCRIPTION LIMITS
+import { createClient } from '@supabase/supabase-js'
+import { checkSubscriptionLimitsSimple } from '~/server/utils/subscription-simple.js'
+
 export default defineEventHandler(async (event) => {
-  const supabase = serverSupabaseClient(event)
-  
   try {
-    // Get authenticated user (could be a sensor device or admin)
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    console.log('=== CREATE HIVE START ===')
+    
+    const config = useRuntimeConfig()
+    const supabaseUrl = config.public?.supabaseUrl
+    const anonKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NTY1MCwiZXhwIjoyMDUyODMxNjUwfQ.VVEw8Bob9AjV_WeBsVHLdNKMRUWq2QLeBHAG8o1is7s'
+    
+    if (!supabaseUrl || !anonKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Missing Supabase configuration'
+      })
+    }
+
+    // Step 1: Authenticate user with anon key
+    const authHeader = getHeader(event, 'authorization')
+    if (!authHeader) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'No authorization header'
+      })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    if (!token) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'No token provided'
+      })
+    }
+
+    const authClient = createClient(supabaseUrl, anonKey)
+    const { data: { user }, error: authError } = await authClient.auth.getUser(token)
     
     if (authError || !user) {
       throw createError({
         statusCode: 401,
-        statusMessage: 'Authentication required'
+        statusMessage: 'Invalid token'
       })
     }
 
+    console.log('Creating hive for user:', user.id)
+
+    // Step 2: Get request body and validate
     const body = await readBody(event)
     
-    // Validate required fields
-    if (!body.sensor_id || !body.hive_id || !body.sensor_type || body.value === undefined) {
+    if (!body.name || !body.name.trim()) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'sensor_id, hive_id, sensor_type, and value are required'
+        statusMessage: 'Hive name is required'
       })
     }
 
-    // Verify the sensor and hive belong to the user
-    const { data: sensor, error: sensorError } = await supabase
-      .from('sensors')
-      .select(`
-        id,
-        user_id,
-        hives (
-          id,
-          user_id
-        )
-      `)
-      .eq('id', body.sensor_id)
-      .single()
-
-    if (sensorError || !sensor) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Sensor not found'
-      })
-    }
-
-    // For API readings, we might allow system/admin users to post readings
-    // But for user-created readings, verify ownership
-    if (sensor.user_id !== user.id && sensor.hives?.user_id !== user.id) {
+    // Step 3: Check subscription limits using the utility
+    const limitCheck = await checkSubscriptionLimitsSimple(user.id, 'create_hive')
+    
+    if (!limitCheck.allowed) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'Access denied to this sensor'
+        statusMessage: limitCheck.reason
       })
     }
 
-    // Verify hive ownership separately
-    const { data: hive, error: hiveError } = await supabase
+    console.log('Subscription check passed:', limitCheck)
+
+    // Step 4: Create new hive
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey)
+    
+    const newHive = {
+      user_id: user.id,
+      created_by: user.id,
+      name: body.name.trim(),
+      description: body.description?.trim() || null,
+      latitude: body.latitude ? parseFloat(body.latitude) : null,
+      longitude: body.longitude ? parseFloat(body.longitude) : null,
+      installation_date: body.installation_date || new Date().toISOString().split('T')[0],
+      is_active: body.is_active !== undefined ? body.is_active : true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    console.log('Inserting hive:', newHive)
+
+    // Use service role to insert (bypasses RLS)
+    const { data, error } = await serviceClient
       .from('hives')
-      .select('id, user_id')
-      .eq('id', body.hive_id)
-      .single()
-
-    if (hiveError || !hive || hive.user_id !== user.id) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Access denied to this hive'
-      })
-    }
-
-    // Validate sensor belongs to the specified hive
-    if (sensor.hive_id && sensor.hive_id !== parseInt(body.hive_id)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Sensor is not assigned to the specified hive'
-      })
-    }
-
-    // Validate value is a number
-    const numericValue = parseFloat(body.value)
-    if (isNaN(numericValue)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Reading value must be a valid number'
-      })
-    }
-
-    // Create new reading
-    const newReading = {
-      sensor_id: parseInt(body.sensor_id),
-      hive_id: parseInt(body.hive_id),
-      sensor_type: body.sensor_type.trim(),
-      value: numericValue,
-      unit: body.unit?.trim() || '',
-      reading_time: body.reading_time ? new Date(body.reading_time).toISOString() : new Date().toISOString(),
-      signal_strength: body.signal_strength ? parseInt(body.signal_strength) : null
-    }
-
-    // Validate reading_time is a valid date
-    if (isNaN(new Date(newReading.reading_time).getTime())) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid reading_time format'
-      })
-    }
-
-    const { data, error } = await supabase
-      .from('sensor_readings')
-      .insert([newReading])
+      .insert([newHive])
       .select()
       .single()
 
     if (error) {
-      console.error('Database error creating reading:', error)
+      console.error('Database insert error:', error)
       throw createError({
         statusCode: 500,
-        statusMessage: 'Failed to save sensor reading'
+        statusMessage: `Database error: ${error.message}`
       })
     }
 
-    // Update sensor's last_reading_at timestamp
-    await supabase
-      .from('sensors')
-      .update({ 
-        last_reading_at: newReading.reading_time,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', body.sensor_id)
-
+    console.log('✅ Hive created successfully:', data)
+    console.log('=== CREATE HIVE END ===')
+    
     return { 
       data,
-      message: 'Sensor reading created successfully'
+      subscription_info: {
+        plan: limitCheck.plan,
+        hives_used: limitCheck.currentUsage.hives + 1,
+        hives_limit: limitCheck.limits.max_hives,
+        sensors_used: limitCheck.currentUsage.sensors,
+        sensors_limit: limitCheck.limits.max_sensors_total
+      }
     }
     
   } catch (error) {
+    console.error('Create hive error:', error)
+    
     if (error.statusCode) {
       throw error
     }
     
-    console.error('Reading creation error:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to create reading'
+      statusMessage: 'Failed to create hive'
     })
   }
 })
-
