@@ -82,17 +82,37 @@
 
               <!-- Add New Hive Card -->
               <div
-                @click="showAddHiveModal = true"
-                class="bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 cursor-pointer hover:border-gray-500 hover:bg-gray-750 transition-colors flex flex-col items-center justify-center min-h-[280px]"
+                @click="handleAddHiveClick"
+                :class="[
+                  'bg-gray-800 border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors flex flex-col items-center justify-center min-h-[280px]',
+                  canAddHive ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-750' : 'border-red-600 bg-red-900/20'
+                ]"
               >
-                <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mb-3">
-                  <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <div :class="[
+                  'w-12 h-12 rounded-full flex items-center justify-center mb-3',
+                  canAddHive ? 'bg-gray-700' : 'bg-red-600'
+                ]">
+                  <svg v-if="canAddHive" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
                   </svg>
+                  <svg v-else class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
+                  </svg>
                 </div>
-                <h3 class="font-semibold text-lg mb-2 text-gray-300">Add New Hive</h3>
-                <p class="text-gray-400 text-sm text-center">
-                  Click to add a new hive to your monitoring network
+                <h3 :class="[
+                  'font-semibold text-lg mb-2',
+                  canAddHive ? 'text-gray-300' : 'text-red-400'
+                ]">
+                  {{ canAddHive ? 'Add New Hive' : 'Limit Reached' }}
+                </h3>
+                <p :class="[
+                  'text-sm text-center',
+                  canAddHive ? 'text-gray-400' : 'text-red-300'
+                ]">
+                  {{ canAddHive 
+                    ? 'Click to add a new hive to your monitoring network' 
+                    : `You've reached your ${subscription?.limits.max_hives} hive limit. Upgrade to add more.`
+                  }}
                 </p>
               </div>
             </div>
@@ -144,9 +164,52 @@
         :creating="addingHive"
         :subscription="subscription"
         :current-usage="currentUsage"
+        :can-add="canAddHive"
         @close="closeModal"
         @create="handleAddHive"
       />
+
+      <!-- Upgrade Modal -->
+      <div v-if="showUpgradeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-lg w-full max-w-md">
+          <div class="flex justify-between items-center p-6 border-b border-gray-700">
+            <h3 class="text-xl font-semibold">Upgrade Required</h3>
+            <button @click="showUpgradeModal = false" class="text-gray-400 hover:text-white">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="p-6">
+            <p class="text-gray-300 mb-4">{{ upgradeModalMessage }}</p>
+            
+            <div class="bg-gray-700 rounded-lg p-4 mb-6">
+              <h4 class="font-semibold mb-2">Your Current Plan: {{ subscription?.planDisplayName }}</h4>
+              <div class="space-y-1 text-sm text-gray-300">
+                <div>Hives: {{ currentUsage.hives }}/{{ subscription?.limits.max_hives === -1 ? '∞' : subscription?.limits.max_hives }}</div>
+                <div>Sensors: {{ currentUsage.sensors }}/{{ subscription?.limits.max_sensors_total === -1 ? '∞' : subscription?.limits.max_sensors_total }}</div>
+              </div>
+            </div>
+
+            <div class="flex space-x-4">
+              <button 
+                @click="showUpgradeModal = false"
+                class="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Maybe Later
+              </button>
+              <NuxtLink 
+                to="/pricing"
+                class="flex-1 px-4 py-2 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors"
+                @click="showUpgradeModal = false"
+              >
+                View Plans
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -189,14 +252,29 @@ const { subscription, loadSubscription } = useSubscription()
 
 // Reactive data for modals and alerts
 const showAddHiveModal = ref(false)
+const showUpgradeModal = ref(false)
 const addingHive = ref(false)
 const alerts = ref([])
+const upgradeModalMessage = ref('')
 
 // Current usage data for the modal
 const currentUsage = computed(() => ({
   hives: hivesWithSensorData.value?.length || 0,
   sensors: sensorsWithLatestReadings.value?.length || 0
 }))
+
+// 🔥 SUBSCRIPTION ENFORCEMENT - Added these computed properties
+const canAddHive = computed(() => {
+  if (!subscription.value) return false
+  const maxHives = subscription.value.limits.max_hives
+  return maxHives === -1 || currentUsage.value.hives < maxHives
+})
+
+const canAddSensor = computed(() => {
+  if (!subscription.value) return false
+  const maxSensors = subscription.value.limits.max_sensors_total
+  return maxSensors === -1 || currentUsage.value.sensors < maxSensors
+})
 
 // Update interval
 let updateInterval
@@ -255,8 +333,28 @@ const handleRefresh = async () => {
   ])
 }
 
+// 🔥 SUBSCRIPTION ENFORCEMENT - Updated this function
+const handleAddHiveClick = () => {
+  if (canAddHive.value) {
+    showAddHiveModal.value = true
+  } else {
+    upgradeModalMessage.value = `You've reached the hive limit for your ${subscription.value?.planDisplayName} plan. Upgrade to add more hives.`
+    showUpgradeModal.value = true
+  }
+}
+
+// 🔥 SUBSCRIPTION ENFORCEMENT - Updated this function with validation
 const handleAddHive = async (hiveData) => {
   if (addingHive.value || !user.value) return
+  
+  // 🔥 CRITICAL: Check subscription limits before proceeding
+  if (!canAddHive.value) {
+    const maxHives = subscription.value?.limits?.max_hives || 0
+    upgradeModalMessage.value = `You've reached your hive limit of ${maxHives} hives. Please upgrade your plan to add more hives.`
+    showUpgradeModal.value = true
+    closeModal()
+    return
+  }
   
   addingHive.value = true
   
@@ -276,6 +374,13 @@ const handleAddHive = async (hiveData) => {
     })
     
     if (response.error) {
+      // Check if it's a subscription limit error from the server
+      if (response.error.includes('limit') || response.error.includes('Limit')) {
+        upgradeModalMessage.value = response.error
+        showUpgradeModal.value = true
+        closeModal()
+        return
+      }
       throw new Error(response.error)
     }
     
@@ -288,9 +393,15 @@ const handleAddHive = async (hiveData) => {
     }
   } catch (err) {
     console.error('Failed to add hive:', err)
-    // Set error on the composable - but clearError is read-only, so we need to handle this differently
-    // For now, we'll create a local error state for this specific case
-    alert(err.message || 'Failed to add hive. Please try again.')
+    
+    // Check if it's a subscription-related error
+    if (err.message.includes('limit') || err.message.includes('Limit')) {
+      upgradeModalMessage.value = err.message
+      showUpgradeModal.value = true
+      closeModal()
+    } else {
+      alert(err.message || 'Failed to add hive. Please try again.')
+    }
   } finally {
     addingHive.value = false
   }
