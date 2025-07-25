@@ -98,8 +98,6 @@ const sensorTypeLabel = computed(() => {
     'temperature': 'Temperature',
     'humidity': 'Humidity', 
     'weight': 'Weight Scale',
-    'sound': 'Sound Level',
-    'vibration': 'Vibration',
     'activity': 'Activity'
   }
   return labels[props.sensor.sensor_type] || props.sensor.sensor_type.charAt(0).toUpperCase() + props.sensor.sensor_type.slice(1)

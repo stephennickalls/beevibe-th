@@ -43,6 +43,14 @@
                 <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"/>
               </svg>
               <span>{{ showFilters ? 'Hide' : 'Show' }} Filters</span>
+              <svg 
+                class="w-4 h-4 transition-transform duration-200" 
+                :class="{ 'rotate-180': showFilters }" 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+              </svg>
             </button>
             
             <div class="text-sm text-gray-400">
@@ -51,7 +59,9 @@
           </div>
           
           <div v-if="hasActiveFilters" class="flex items-center space-x-2">
-            <span class="text-xs text-gray-400">{{ activeFilterCount }} filters active</span>
+            <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+              {{ activeFilterCount }} filter{{ activeFilterCount > 1 ? 's' : '' }}
+            </span>
             <button @click="clearFilters" class="text-xs text-blue-400 hover:text-blue-300 cursor-pointer">
               Clear all
             </button>
@@ -75,34 +85,49 @@
             <!-- Type Filter -->
             <div>
               <label class="block text-sm font-medium mb-1">Sensor Type</label>
-              <select v-model="filterType" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm">
-                <option value="">All Types</option>
-                <option v-for="type in availableSensorTypes" :key="type" :value="type">
-                  {{ formatSensorType(type) }}
-                </option>
-              </select>
+              <div class="relative">
+                <select v-model="filterType" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Types</option>
+                  <option v-for="type in availableSensorTypes" :key="type" :value="type">
+                    {{ formatSensorType(type) }}
+                  </option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
             </div>
 
             <!-- Status Filter -->
             <div>
               <label class="block text-sm font-medium mb-1">Status</label>
-              <select v-model="filterStatus" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm">
-                <option value="">All Statuses</option>
-                <option value="online">Online</option>
-                <option value="offline">Offline</option>
-              </select>
+              <div class="relative">
+                <select v-model="filterStatus" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Statuses</option>
+                  <option value="online">Online</option>
+                  <option value="offline">Offline</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
             </div>
 
             <!-- Hive Assignment Filter -->
             <div>
               <label class="block text-sm font-medium mb-1">Hive Assignment</label>
-              <select v-model="filterAssignment" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm">
-                <option value="">All Hives</option>
-                <option value="unassigned">Unassigned</option>
-                <option v-for="hive in hivesWithSensorData" :key="hive.id" :value="hive.id">
-                  {{ hive.name }}
-                </option>
-              </select>
+              <div class="relative">
+                <select v-model="filterAssignment" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Hives</option>
+                  <option value="unassigned">Unassigned</option>
+                  <option v-for="hive in hivesWithSensorData" :key="hive.id" :value="hive.id">
+                    {{ hive.name }}
+                  </option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -111,12 +136,17 @@
             <!-- Battery Level Filter -->
             <div>
               <label class="block text-sm font-medium mb-1">Battery Level</label>
-              <select v-model="filterBattery" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm">
-                <option value="">All Levels</option>
-                <option value="low">Low (< 20%)</option>
-                <option value="medium">Medium (20-50%)</option>
-                <option value="high">High (> 50%)</option>
-              </select>
+              <div class="relative">
+                <select v-model="filterBattery" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Levels</option>
+                  <option value="low">Low (< 20%)</option>
+                  <option value="medium">Medium (20-50%)</option>
+                  <option value="high">High (> 50%)</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
             </div>
 
             <!-- Filter Actions -->
@@ -171,12 +201,17 @@
 
       <!-- No Sensors State -->
       <div v-else-if="filteredSensors.length === 0" class="text-center py-12">
-        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <h3 class="text-lg font-semibold mb-2">No Sensors Found</h3>
+        <div class="mb-4">
+          <svg class="w-16 h-16 mx-auto mb-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div v-if="!hasActiveFilters" class="text-4xl mb-2">🔧</div>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">
+          {{ hasActiveFilters ? 'No Sensors Match Your Filters' : 'Ready to Add Your First Sensor?' }}
+        </h3>
         <p class="text-gray-400 mb-4">
-          {{ hasActiveFilters ? 'No sensors match your current filters.' : 'Get started by adding your first sensor.' }}
+          {{ hasActiveFilters ? 'Try adjusting your filters to find the sensors you\'re looking for.' : 'Start monitoring your hives by adding temperature, humidity, and other sensors.' }}
         </p>
         <div class="flex justify-center space-x-3">
           <button v-if="hasActiveFilters" @click="clearFilters" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors cursor-pointer">
@@ -188,13 +223,12 @@
         </div>
       </div>
 
-      <!-- Sensors Grid -->
+      <!-- Sensors Grid with SensorCard Component -->
       <div v-else class="space-y-3">
-        <SensorListItem
+        <SensorCard
           v-for="sensor in filteredSensors"
           :key="sensor.id"
           :sensor="sensor"
-          mode="page"
           @click="openSensorDetailModal"
         />
       </div>
@@ -277,7 +311,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import SensorListItem from '~/components/SensorListItem.vue'
+import SensorCard from '~/components/SensorCard.vue'
 import AddSensorModal from '~/components/AddSensorModal.vue'
 import SensorEditModal from '~/components/SensorEditModal.vue'
 
@@ -420,7 +454,7 @@ const canDelete = computed(() => {
   return deleteSensorForm.value.confirmationName === expectedName
 })
 
-// Functions
+// Functions - removed styling functions since they're now in SensorCard component
 const formatSensorType = (type) => {
   const labels = {
     'temperature': 'Temperature',
@@ -615,6 +649,24 @@ onMounted(async () => {
   transition-duration: 150ms;
 }
 
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Remove default select styling and add custom arrow */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+}
+
 /* Custom scrollbar for sensor list */
 .space-y-3::-webkit-scrollbar {
   width: 4px;
@@ -632,5 +684,10 @@ onMounted(async () => {
 
 .space-y-3::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
+}
+
+/* Hover effects for sensor cards */
+.cursor-pointer:hover {
+  transform: translateY(-1px);
 }
 </style>
