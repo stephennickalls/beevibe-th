@@ -38,7 +38,7 @@
               </button>
             </div>
             
-            <div v-else class="flex items-center space-x-4">
+            <div v-else class="hidden md:flex items-center space-x-4">
               <NuxtLink 
                 to="/auth/login" 
                 class="text-gray-300 hover:text-brand-yellow font-medium transition-colors"
