@@ -11,7 +11,7 @@
       </div>
       
       <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-        <!-- Sensor Type (Editable) -->
+        <!-- Sensor Type -->
         <div>
           <label class="block text-sm font-medium mb-2">Sensor Type</label>
           <select 
@@ -22,32 +22,53 @@
             <option value="temperature">Temperature</option>
             <option value="humidity">Humidity</option>
             <option value="weight">Weight</option>
+            <option value="activity">Activity</option>
           </select>
         </div>
         
-        <!-- Sensor Name (Editable) -->
+        <!-- Sensor Name -->
         <div>
           <label class="block text-sm font-medium mb-2">Sensor Name</label>
           <input 
             v-model="formData.name" 
             type="text" 
             placeholder="e.g., Main Temperature Sensor"
-            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" 
-          />
-        </div>
-        
-        <!-- Model (Editable) -->
-        <div>
-          <label class="block text-sm font-medium mb-2">Model</label>
-          <input 
-            v-model="formData.model" 
-            type="text" 
-            placeholder="e.g., DHT22, DS18B20"
-            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" 
+            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
           />
         </div>
 
-        <!-- Hive Assignment (Editable) -->
+        <!-- Model -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Model (Optional)</label>
+          <input 
+            v-model="formData.model" 
+            type="text" 
+            placeholder="e.g., DHT22, BME280"
+            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+          />
+        </div>
+
+        <!-- Battery Level -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Battery Level (%)</label>
+          <div class="flex items-center space-x-3">
+            <input 
+              v-model.number="formData.battery_level" 
+              type="range" 
+              min="0" 
+              max="100" 
+              class="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+            />
+            <span class="text-sm font-medium w-12">{{ formData.battery_level }}%</span>
+          </div>
+          <div class="flex justify-between text-xs text-gray-500 mt-1">
+            <span>0%</span>
+            <span>50%</span>
+            <span>100%</span>
+          </div>
+        </div>
+
+        <!-- Hive Assignment -->
         <div>
           <label class="block text-sm font-medium mb-2">Assigned Hive</label>
           <select 
@@ -55,54 +76,59 @@
             class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
           >
             <option value="">Unassigned</option>
-            <option v-for="hive in availableHives" :key="hive.id" :value="hive.id">
-              {{ hive.name || `Hive ${hive.id}` }}
+            <option 
+              v-for="hive in availableHives" 
+              :key="hive.id" 
+              :value="hive.id"
+            >
+              {{ hive.name }}
             </option>
           </select>
+          <p class="text-xs text-gray-500 mt-1">Leave unassigned to make this sensor available for any hive</p>
         </div>
         
-        <!-- Battery Level (Editable) -->
-        <div>
-          <label class="block text-sm font-medium mb-2">Battery Level (%)</label>
-          <input 
-            v-model="formData.battery_level" 
-            type="number" 
-            min="0" 
-            max="100"
-            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" 
-          />
-        </div>
-        
-        <!-- Online Status (Editable) -->
-        <div class="flex items-center space-x-2">
+        <!-- Online Status -->
+        <div class="flex items-center space-x-3">
           <input 
             v-model="formData.is_online" 
             type="checkbox" 
             id="sensor_online" 
-            class="rounded" 
+            class="rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500"
           />
           <label for="sensor_online" class="text-sm">Sensor is online</label>
         </div>
         
-        <!-- Read-only Info -->
+        <!-- Read-only Information -->
         <div class="bg-gray-750 rounded-lg p-4 space-y-2">
           <h4 class="text-sm font-medium text-gray-300 mb-2">Sensor Information</h4>
           <div class="text-sm text-gray-400 space-y-1">
+            <p><span class="text-gray-500">Sensor ID:</span> {{ sensor?.id }}</p>
             <p><span class="text-gray-500">Created:</span> {{ formatDate(sensor?.created_at) }}</p>
             <p><span class="text-gray-500">Last Updated:</span> {{ formatDate(sensor?.updated_at) }}</p>
             <p><span class="text-gray-500">Last Reading:</span> {{ formatTime(sensor?.last_reading_at) || 'No readings yet' }}</p>
+            <div v-if="sensor?.latest_reading" class="pt-2 border-t border-gray-600">
+              <p class="text-gray-300 font-medium">Latest Reading:</p>
+              <p><span class="text-gray-500">Value:</span> {{ formatReadingValue(sensor.latest_reading) }}</p>
+              <p><span class="text-gray-500">Time:</span> {{ formatTime(sensor.latest_reading.reading_time) }}</p>
+            </div>
           </div>
         </div>
       </div>
       
       <div class="flex justify-end space-x-3 p-6 border-t border-gray-700">
-        <button @click="$emit('close')" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer" :disabled="updating">
+        <button 
+          type="button"
+          @click="$emit('close')" 
+          class="px-4 py-2 text-gray-400 hover:text-white transition-colors cursor-pointer" 
+          :disabled="updating"
+        >
           Cancel
         </button>
         <button 
+          type="button"
           @click="handleSave" 
-          :disabled="updating" 
-          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg transition-colors flex items-center space-x- cursor-pointer"
+          :disabled="updating || !isFormValid" 
+          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center space-x-2 cursor-pointer"
         >
           <svg v-if="updating" class="animate-spin h-4 w-4" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
@@ -151,6 +177,12 @@ const formData = ref({
   hive_id: ''
 })
 
+// Computed properties
+const isFormValid = computed(() => {
+  return formData.value.sensor_type && 
+         formData.value.name.trim().length > 0
+})
+
 // Watch for sensor changes to populate form
 watch(() => props.sensor, (newSensor) => {
   if (newSensor) {
@@ -164,6 +196,26 @@ watch(() => props.sensor, (newSensor) => {
     }
   }
 }, { immediate: true })
+
+// Reset form when modal is closed
+watch(() => props.show, (newShow) => {
+  if (!newShow) {
+    // Keep form data to preserve changes when reopening
+    return
+  }
+  
+  // Re-populate form if sensor data exists
+  if (props.sensor) {
+    formData.value = {
+      sensor_type: props.sensor.sensor_type || '',
+      name: props.sensor.name || '',
+      model: props.sensor.model || '',
+      battery_level: props.sensor.battery_level || 100,
+      is_online: props.sensor.is_online !== undefined ? props.sensor.is_online : true,
+      hive_id: props.sensor.hive_id || ''
+    }
+  }
+})
 
 // Utility functions
 const formatTime = (date) => {
@@ -187,14 +239,64 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
+}
+
+const formatReadingValue = (reading) => {
+  if (!reading || reading.value === null || reading.value === undefined) {
+    return 'N/A'
+  }
+  
+  const value = parseFloat(reading.value)
+  const type = props.sensor?.sensor_type
+  const unit = reading.unit
+  
+  switch (type) {
+    case 'temperature':
+      return `${value.toFixed(1)}°C`
+    case 'humidity':
+      return `${value.toFixed(1)}%`
+    case 'weight':
+      return `${(value / 1000).toFixed(1)}kg`
+    default:
+      return unit ? `${value.toFixed(2)} ${unit}` : value.toFixed(2)
+  }
 }
 
 // Handle save
 const handleSave = () => {
-  emit('save', formData.value)
+  console.log('Save button clicked!')
+  console.log('Form valid:', isFormValid.value)
+  console.log('Updating:', props.updating)
+  console.log('Form data:', formData.value)
+  
+  if (!isFormValid.value || props.updating) {
+    console.log('Save blocked - form invalid or updating')
+    return
+  }
+  
+  const saveData = {
+    sensor_type: formData.value.sensor_type,
+    name: formData.value.name.trim(),
+    model: formData.value.model.trim() || null,
+    battery_level: formData.value.battery_level,
+    is_online: formData.value.is_online,
+    hive_id: formData.value.hive_id || null
+  }
+  
+  console.log('Emitting save with data:', saveData)
+  emit('save', saveData)
 }
+
+// Auto-generate name based on sensor type
+watch(() => formData.value.sensor_type, (newType) => {
+  if (newType && (!formData.value.name.trim() || formData.value.name === '')) {
+    formData.value.name = `${newType.charAt(0).toUpperCase() + newType.slice(1)} Sensor`
+  }
+})
 </script>
 
 <style scoped>
@@ -215,5 +317,69 @@ const handleSave = () => {
 
 .max-h-\[60vh\]::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
+}
+
+/* Transition animations */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Custom range slider styling */
+input[type="range"] {
+  background: transparent;
+  -webkit-appearance: none;
+}
+
+input[type="range"]::-webkit-slider-track {
+  background: #4B5563;
+  height: 8px;
+  border-radius: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: #3B82F6;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+input[type="range"]::-moz-range-track {
+  background: #4B5563;
+  height: 8px;
+  border-radius: 4px;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background: #3B82F6;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  margin-top: -6px;
+}
+
+/* Battery level color coding */
+input[type="range"]::-webkit-slider-thumb {
+  background: #3B82F6;
+}
+
+/* You could add dynamic coloring based on battery level */
+.battery-low input[type="range"]::-webkit-slider-thumb {
+  background: #EF4444;
+}
+
+.battery-medium input[type="range"]::-webkit-slider-thumb {
+  background: #F59E0B;
+}
+
+.battery-high input[type="range"]::-webkit-slider-thumb {
+  background: #10B981;
 }
 </style>
