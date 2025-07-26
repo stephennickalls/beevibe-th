@@ -1,4 +1,4 @@
-// server/api/sensors/index.post.js - COMPLETE FIXED VERSION
+// server/api/sensors/index.post.js - FIXED VERSION
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
@@ -58,8 +58,10 @@ export default defineEventHandler(async (event) => {
 
     const serviceClient = createClient(supabaseUrl, serviceRoleKey)
 
-    // Step 3: If hive_id provided, verify user owns the hive
+    // Step 3: FIXED - Only validate hive ownership if hive_id is provided
     if (body.hive_id) {
+      console.log('Validating hive ownership for hive_id:', body.hive_id)
+      
       const { data: hive, error: hiveError } = await serviceClient
         .from('hives')
         .select('id, user_id')
@@ -68,20 +70,25 @@ export default defineEventHandler(async (event) => {
         .single()
 
       if (hiveError || !hive) {
+        console.error('Hive validation error:', hiveError)
         throw createError({
           statusCode: 403,
           statusMessage: 'You can only assign sensors to your own hives'
         })
       }
+      
+      console.log('✅ Hive validation passed for hive:', hive.id)
+    } else {
+      console.log('ℹ️  Creating unassigned sensor (no hive_id provided)')
     }
 
-    // Step 4: Check current usage and limits (simplified)
+    // Step 4: Check current usage and limits
     const { count: currentSensors } = await serviceClient
       .from('sensors')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
 
-    console.log('Current sensors:', currentSensors)
+    console.log('Current sensor count:', currentSensors)
 
     // Simple limit check - allow up to 30 sensors per user
     if (currentSensors >= 30) {
@@ -91,7 +98,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // If assigning to a hive, check per-hive limits
+    // FIXED - Only check per-hive limits if assigning to a hive
     if (body.hive_id) {
       const { count: hiveSensorCount } = await serviceClient
         .from('sensors')
@@ -105,12 +112,14 @@ export default defineEventHandler(async (event) => {
           statusMessage: 'This hive already has the maximum of 10 sensors.'
         })
       }
+      
+      console.log(`✅ Hive ${body.hive_id} has ${hiveSensorCount}/10 sensors`)
     }
 
-    // Step 5: Create new sensor
+    // Step 5: Create new sensor - FIXED to handle null hive_id
     const newSensor = {
       user_id: user.id,
-      hive_id: body.hive_id || null,
+      hive_id: body.hive_id || null, // Explicitly set to null if not provided
       sensor_type: body.sensor_type,
       name: body.name.trim(),
       model: body.model?.trim() || null,
@@ -121,7 +130,10 @@ export default defineEventHandler(async (event) => {
       updated_at: new Date().toISOString()
     }
 
-    console.log('Inserting sensor:', newSensor)
+    console.log('Inserting sensor:', {
+      ...newSensor,
+      hive_assignment: newSensor.hive_id ? `Assigned to hive ${newSensor.hive_id}` : 'Unassigned'
+    })
 
     // Use service role to insert (bypasses RLS)
     const { data, error } = await serviceClient
@@ -138,7 +150,12 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    console.log('✅ Sensor created successfully:', data)
+    console.log('✅ Sensor created successfully:', {
+      id: data.id,
+      name: data.name,
+      type: data.sensor_type,
+      hive_id: data.hive_id || 'unassigned'
+    })
     console.log('=== CREATE SENSOR END ===')
     
     return { 

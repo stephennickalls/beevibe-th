@@ -1,0 +1,434 @@
+[
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('alerts_id_seq'::regclass)",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "hive_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "alert_type",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": 50
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "severity",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": 20
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "title",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": 200
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "message",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "threshold_value",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "actual_value",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "sensor_id",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "resolved",
+    "data_type": "boolean",
+    "is_nullable": "YES",
+    "column_default": "false",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "resolved_by",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": 100
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "resolved_notes",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "alerts",
+    "column_name": "resolved_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('hives_id_seq'::regclass)",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "uuid",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "gen_random_uuid()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "name",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": 100
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "description",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "latitude",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "longitude",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "installation_date",
+    "data_type": "date",
+    "is_nullable": "YES",
+    "column_default": "CURRENT_DATE",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "is_active",
+    "data_type": "boolean",
+    "is_nullable": "YES",
+    "column_default": "true",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "hives",
+    "column_name": "created_by",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('sensor_readings_id_seq'::regclass)",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "sensor_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "hive_id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "sensor_type",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": 50
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "value",
+    "data_type": "numeric",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "unit",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": 20
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "reading_time",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "signal_strength",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensor_readings",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO",
+    "column_default": "nextval('sensors_id_seq'::regclass)",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "uuid",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "gen_random_uuid()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "hive_id",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "sensor_type",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": 50
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": 100
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "model",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": 100
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "battery_level",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": "100",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "is_online",
+    "data_type": "boolean",
+    "is_nullable": "YES",
+    "column_default": "true",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "last_reading_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null,
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "calibration_offset",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": "0",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": "now()",
+    "character_maximum_length": null
+  },
+  {
+    "section": "-- COLUMN DETAILS --",
+    "table_name": "sensors",
+    "column_name": "user_id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": null,
+    "character_maximum_length": null
+  }
+]

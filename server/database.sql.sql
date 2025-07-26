@@ -17,8 +17,8 @@ CREATE TABLE public.alerts (
   created_at timestamp with time zone DEFAULT now(),
   resolved_at timestamp with time zone,
   CONSTRAINT alerts_pkey PRIMARY KEY (id),
-  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
-  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
+  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
+  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id)
 );
 CREATE TABLE public.daily_summaries (
   id integer NOT NULL DEFAULT nextval('daily_summaries_id_seq'::regclass),
@@ -58,8 +58,8 @@ CREATE TABLE public.hives (
   user_id uuid,
   created_by uuid,
   CONSTRAINT hives_pkey PRIMARY KEY (id),
-  CONSTRAINT hives_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT hives_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT hives_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT hives_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.payments (
   id integer NOT NULL DEFAULT nextval('payments_id_seq'::regclass),
@@ -116,7 +116,7 @@ CREATE TABLE public.sensor_readings (
 CREATE TABLE public.sensors (
   id integer NOT NULL DEFAULT nextval('sensors_id_seq'::regclass),
   uuid uuid NOT NULL DEFAULT gen_random_uuid() UNIQUE,
-  hive_id integer NOT NULL,
+  hive_id integer,
   sensor_type character varying NOT NULL,
   name character varying,
   model character varying,
@@ -126,8 +126,10 @@ CREATE TABLE public.sensors (
   calibration_offset numeric DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  user_id uuid NOT NULL,
   CONSTRAINT sensors_pkey PRIMARY KEY (id),
-  CONSTRAINT sensors_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
+  CONSTRAINT sensors_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
+  CONSTRAINT sensors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.subscription_plans (
   id integer NOT NULL DEFAULT nextval('subscription_plans_id_seq'::regclass),
