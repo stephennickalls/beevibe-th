@@ -67,23 +67,6 @@
           <p class="text-gray-400 text-xs mt-1">You can assign the sensor to a hive later if needed</p>
         </div>
         
-        <!-- Battery Level -->
-        <div>
-          <label class="block text-sm font-medium mb-2">Battery Level (%)</label>
-          <input 
-            v-model="formData.battery_level" 
-            type="number" 
-            min="0" 
-            max="100"
-            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" 
-          />
-          <div class="flex justify-between text-xs text-gray-400 mt-1">
-            <span>0%</span>
-            <span>Current: {{ formData.battery_level }}%</span>
-            <span>100%</span>
-          </div>
-        </div>
-        
         <!-- Online Status -->
         <div class="flex items-center space-x-2">
           <input 
@@ -95,21 +78,43 @@
           <label for="sensor_online" class="text-sm">Sensor is online and active</label>
         </div>
 
-        <!-- Info about limits -->
-        <div v-if="subscription" class="bg-gray-750 rounded-lg p-4">
-          <h4 class="text-sm font-medium text-gray-300 mb-2">Plan Information</h4>
-          <div class="text-xs text-gray-400 space-y-1">
-            <p><span class="text-gray-500">Current Plan:</span> {{ subscription.planDisplayName }}</p>
+        <!-- 📊 SUBSCRIPTION STATUS INFO -->
+        <div v-if="subscription" class="bg-gray-750 rounded-lg p-4 border" :class="getUsageStatusClass()">
+          <h4 class="text-sm font-medium mb-2" :class="getUsageTextClass()">
+            📋 Plan Information
+          </h4>
+          <div class="text-xs space-y-1" :class="getUsageTextClass()">
+            <p>
+              <span class="text-gray-500">Current Plan:</span> 
+              <span class="font-medium">{{ subscription.planDisplayName }}</span>
+            </p>
             <p>
               <span class="text-gray-500">Sensors:</span> 
-              <span :class="currentUsage?.sensors >= subscription.limits.max_sensors_total && subscription.limits.max_sensors_total !== -1 ? 'text-red-400' : 'text-gray-300'">
+              <span class="font-medium" :class="getSensorUsageClass()">
                 {{ currentUsage?.sensors || 0 }}/{{ subscription.limits.max_sensors_total === -1 ? '∞' : subscription.limits.max_sensors_total }}
               </span>
             </p>
             <p v-if="subscription.limits.max_sensors_per_hive !== -1">
               <span class="text-gray-500">Per Hive Limit:</span> 
-              <span class="text-gray-300">{{ subscription.limits.max_sensors_per_hive }} sensors/hive</span>
+              <span class="font-medium">
+                {{ subscription.limits.max_sensors_per_hive }} sensors/hive
+              </span>
             </p>
+          </div>
+          
+          <!-- Usage Progress Bar for Sensors -->
+          <div v-if="subscription.limits.max_sensors_total !== -1" class="mt-3">
+            <div class="flex justify-between text-xs mb-1" :class="getUsageTextClass()">
+              <span>Sensor Usage</span>
+              <span>{{ Math.round(sensorUsagePercent) }}%</span>
+            </div>
+            <div class="w-full bg-gray-600 rounded-full h-2">
+              <div 
+                class="h-2 rounded-full transition-all duration-300" 
+                :class="getProgressBarClass()"
+                :style="{ width: `${Math.min(sensorUsagePercent, 100)}%` }"
+              ></div>
+            </div>
           </div>
         </div>
       </div>
@@ -173,13 +178,46 @@ const formData = ref({
   sensor_type: '',
   name: '',
   model: '',
-  battery_level: 100,
   is_online: true,
   hive_id: ''
 })
 
 // Validation errors
 const errors = ref({})
+
+// 📊 SUBSCRIPTION LOGIC (matching hive modal)
+const sensorUsagePercent = computed(() => {
+  if (!props.subscription || props.subscription.limits.max_sensors_total === -1) return 0
+  return ((props.currentUsage?.sensors || 0) / props.subscription.limits.max_sensors_total) * 100
+})
+
+const isNearLimit = computed(() => sensorUsagePercent.value >= 80 && sensorUsagePercent.value < 100)
+const isAtLimit = computed(() => sensorUsagePercent.value >= 100)
+
+// 🎨 STYLING METHODS (matching hive modal)
+const getUsageStatusClass = () => {
+  if (isAtLimit.value) return 'border-red-500/30 bg-red-900/20'
+  if (isNearLimit.value) return 'border-yellow-500/30 bg-yellow-900/20'
+  return 'border-gray-600'
+}
+
+const getUsageTextClass = () => {
+  if (isAtLimit.value) return 'text-red-300'
+  if (isNearLimit.value) return 'text-yellow-300'
+  return 'text-gray-300'
+}
+
+const getSensorUsageClass = () => {
+  if (isAtLimit.value) return 'text-red-400'
+  if (isNearLimit.value) return 'text-yellow-400'
+  return 'text-green-400'
+}
+
+const getProgressBarClass = () => {
+  if (isAtLimit.value) return 'bg-red-500'
+  if (isNearLimit.value) return 'bg-yellow-500'
+  return 'bg-green-500'
+}
 
 // Computed properties
 const isValid = computed(() => {
@@ -223,7 +261,6 @@ watch(() => props.show, (newShow) => {
       sensor_type: '',
       name: '',
       model: '',
-      battery_level: 100,
       is_online: true,
       hive_id: ''
     }
@@ -240,7 +277,6 @@ const handleCreate = () => {
       sensor_type: formData.value.sensor_type,
       name: formData.value.name.trim(),
       model: formData.value.model.trim() || null,
-      battery_level: parseInt(formData.value.battery_level),
       is_online: formData.value.is_online,
       hive_id: formData.value.hive_id || null
     }
@@ -268,5 +304,12 @@ const handleCreate = () => {
 
 .max-h-\[60vh\]::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
+}
+
+/* Transition animations */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 </style>
