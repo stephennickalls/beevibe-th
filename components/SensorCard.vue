@@ -1,7 +1,6 @@
 <template>
   <div
-    @click="$emit('click', sensor)"
-    class="bg-gray-900 rounded-lg p-4 hover:bg-gray-800 transition-colors cursor-pointer border border-gray-700 hover:border-gray-600"
+    class="bg-gray-900 rounded-lg p-4 hover:bg-gray-800 transition-colors border border-gray-700 hover:border-gray-600"
   >
     <div class="flex items-center justify-between">
       <!-- Left Section: Main Info -->
@@ -114,10 +113,13 @@
           </span>
         </div>
 
-        <!-- Arrow Icon -->
-        <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/>
-        </svg>
+        <!-- View Details Link (replacing the arrow) -->
+        <button 
+          @click="$emit('view-details', sensor)"
+          class="text-blue-400 hover:text-blue-300 text-sm underline cursor-pointer transition-colors"
+        >
+          View Details
+        </button>
       </div>
     </div>
   </div>
@@ -135,7 +137,7 @@ const props = defineProps({
 })
 
 // Events
-const emit = defineEmits(['click'])
+const emit = defineEmits(['view-details'])
 
 // Enhanced styling function for badges using the same color scheme
 const getSensorTypeBadgeColor = (type) => {

@@ -252,59 +252,18 @@
         :available-hives="hivesWithSensorData"
         :updating="updatingSensor"
         @close="closeSensorDetailModal"
-        @update="handleUpdateSensor"
+        @save="handleUpdateSensor"
         @delete="openDeleteSensorModal"
       />
 
-      <!-- Delete Confirmation Modal -->
-      <div v-if="showDeleteSensorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-800 rounded-lg w-full max-w-md">
-          <div class="flex justify-between items-center p-6 border-b border-gray-700">
-            <h3 class="text-xl font-semibold text-red-400">Delete Sensor</h3>
-            <button @click="closeDeleteSensorModal" class="text-gray-400 hover:text-white">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-              </svg>
-            </button>
-          </div>
-          
-          <div class="p-6">
-            <p class="text-gray-300 mb-4">
-              This action cannot be undone. This will permanently delete the sensor and all its data.
-            </p>
-            
-            <div class="bg-gray-700 rounded-lg p-4 mb-6">
-              <h4 class="font-semibold mb-2">Sensor to Delete:</h4>
-              <p class="text-sm text-gray-300">{{ deleteSensorForm.sensorToDelete?.name || `${deleteSensorForm.sensorToDelete?.sensor_type} Sensor` }}</p>
-            </div>
-            
-            <div class="mb-6">
-              <label class="block text-sm font-medium mb-2">
-                Type <span class="font-bold">{{ deleteSensorForm.sensorToDelete?.name || 'DELETE' }}</span> to confirm:
-              </label>
-              <input 
-                v-model="deleteSensorForm.confirmationName" 
-                type="text" 
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-red-500"
-                :placeholder="deleteSensorForm.sensorToDelete?.name || 'DELETE'"
-              />
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-              <button @click="closeDeleteSensorModal" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer">
-                Cancel
-              </button>
-              <button 
-                @click="handleDeleteSensor" 
-                :disabled="!canDelete || deletingSensor"
-                class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
-              >
-                <span>{{ deletingSensor ? 'Deleting...' : 'Delete Sensor' }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Delete Sensor Modal -->
+      <DeleteSensorModal
+        :show="showDeleteSensorModal"
+        :sensor="sensorToDelete"
+        :deleting="deletingSensor"
+        @close="closeDeleteSensorModal"
+        @delete="handleDeleteSensor"
+      />
     </div>
   </div>
 </template>
@@ -314,6 +273,7 @@ import { ref, computed } from 'vue'
 import SensorCard from '~/components/SensorCard.vue'
 import AddSensorModal from '~/components/AddSensorModal.vue'
 import SensorEditModal from '~/components/SensorEditModal.vue'
+import DeleteSensorModal from '~/components/DeleteSensorModal.vue'
 
 // Meta
 definePageMeta({
@@ -335,6 +295,9 @@ const {
   clearError
 } = useHiveData()
 
+// Use the centralized sensor service
+const { updateSensor, deleteSensor, createSensor } = useSensorService()
+
 // Composables for subscription
 const { subscription, loadSubscription } = useSubscription()
 
@@ -343,6 +306,7 @@ const showAddSensorModal = ref(false)
 const showSensorDetailModal = ref(false)
 const showDeleteSensorModal = ref(false)
 const selectedSensor = ref(null)
+const sensorToDelete = ref(null)
 
 // Loading states
 const addingSensor = ref(false)
@@ -357,22 +321,8 @@ const filterAssignment = ref('')
 const filterBattery = ref('')
 const showFilters = ref(false)
 
-// Form data
-const deleteSensorForm = ref({
-  sensorToDelete: null,
-  confirmationName: ''
-})
-
 // Mock alerts data - you can replace this with real alerts from API
 const activeAlerts = ref([])
-
-// Helper function to get auth token
-const getAuthToken = async () => {
-  if (!user.value) return null
-  
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.access_token
-}
 
 // Computed properties
 const currentUsage = computed(() => ({
@@ -449,11 +399,6 @@ const activeFilterCount = computed(() => {
   return count
 })
 
-const canDelete = computed(() => {
-  const expectedName = deleteSensorForm.value.sensorToDelete?.name || 'DELETE'
-  return deleteSensorForm.value.confirmationName === expectedName
-})
-
 // Functions - removed styling functions since they're now in SensorCard component
 const formatSensorType = (type) => {
   const labels = {
@@ -493,52 +438,36 @@ const closeSensorDetailModal = () => {
 }
 
 const openDeleteSensorModal = (sensor) => {
-  deleteSensorForm.value.sensorToDelete = sensor
-  deleteSensorForm.value.confirmationName = ''
+  sensorToDelete.value = sensor
   showDeleteSensorModal.value = true
 }
 
 const closeDeleteSensorModal = () => {
   showDeleteSensorModal.value = false
-  deleteSensorForm.value = {
-    sensorToDelete: null,
-    confirmationName: ''
-  }
+  sensorToDelete.value = null
   deletingSensor.value = false
 }
 
-// API functions
+// API functions using the centralized service
 const handleCreateSensor = async (sensorData) => {
   if (addingSensor.value || !user.value) return
   
   addingSensor.value = true
   
   try {
-    const token = await getAuthToken()
-    if (!token) {
-      throw new Error('Authentication token not available')
-    }
-
-    const response = await $fetch('/api/sensors', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: sensorData
-    })
+    console.log('Creating sensor using centralized service...')
     
-    if (response.error) {
-      throw new Error(response.error)
-    }
+    // Use the centralized service
+    const newSensor = await createSensor(sensorData)
     
-    if (response.data) {
-      // Refresh all data to get the new sensor
-      await refreshData()
-      
-      // Close modal
-      closeAddSensorModal()
-    }
+    console.log('Sensor created successfully:', newSensor)
+    
+    // Refresh all data to get the new sensor
+    await refreshData()
+    
+    // Close modal
+    closeAddSensorModal()
+    
   } catch (err) {
     console.error('Failed to create sensor:', err)
     alert(err.message || 'Failed to create sensor. Please try again.')
@@ -547,37 +476,27 @@ const handleCreateSensor = async (sensorData) => {
   }
 }
 
-const handleUpdateSensor = async (sensorId, updateData) => {
-  if (updatingSensor.value || !user.value) return
+const handleUpdateSensor = async (formData) => {
+  if (updatingSensor.value || !user.value || !selectedSensor.value) return
   
   updatingSensor.value = true
   
   try {
-    const token = await getAuthToken()
-    if (!token) {
-      throw new Error('Authentication token not available')
-    }
-
-    const response = await $fetch(`/api/sensors/${sensorId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: updateData
-    })
+    console.log('Updating sensor using centralized service...')
+    console.log('Sensor ID:', selectedSensor.value.id)
+    console.log('Update data:', formData)
     
-    if (response.error) {
-      throw new Error(response.error)
-    }
+    // Use the centralized service with the correct sensor ID
+    const updatedSensor = await updateSensor(selectedSensor.value.id, formData)
     
-    if (response.data) {
-      // Refresh all data to get the updated sensor
-      await refreshData()
-      
-      // Close modal
-      closeSensorDetailModal()
-    }
+    console.log('Sensor updated successfully:', updatedSensor)
+    
+    // Refresh all data to get the updated sensor
+    await refreshData()
+    
+    // Close modal
+    closeSensorDetailModal()
+    
   } catch (err) {
     console.error('Failed to update sensor:', err)
     alert(err.message || 'Failed to update sensor. Please try again.')
@@ -586,29 +505,18 @@ const handleUpdateSensor = async (sensorId, updateData) => {
   }
 }
 
-const handleDeleteSensor = async () => {
-  if (deletingSensor.value || !user.value || !canDelete.value) return
+const handleDeleteSensor = async (sensor) => {
+  if (deletingSensor.value || !user.value) return
   
   deletingSensor.value = true
   
   try {
-    const token = await getAuthToken()
-    if (!token) {
-      throw new Error('Authentication token not available')
-    }
-
-    const sensorId = deleteSensorForm.value.sensorToDelete.id
-    const response = await $fetch(`/api/sensors/${sensorId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
+    console.log('Deleting sensor using centralized service...')
     
-    if (response.error) {
-      throw new Error(response.error)
-    }
+    // Use the centralized service
+    await deleteSensor(sensor.id)
+    
+    console.log('Sensor deleted successfully')
     
     // Refresh all data to remove the deleted sensor
     await refreshData()
@@ -616,6 +524,7 @@ const handleDeleteSensor = async () => {
     // Close modals
     closeDeleteSensorModal()
     closeSensorDetailModal()
+    
   } catch (err) {
     console.error('Failed to delete sensor:', err)
     alert(err.message || 'Failed to delete sensor. Please try again.')
