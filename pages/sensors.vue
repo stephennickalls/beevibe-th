@@ -244,7 +244,16 @@
         @create="handleCreateSensor"
       />
 
-      <!-- Sensor Detail Modal -->
+      <!-- Sensor Details Modal (the main details view) -->
+      <SensorDetailsModal
+        :show="showSensorDetailsModal"
+        :sensor="selectedSensor"
+        @close="closeSensorDetailsModal"
+        @edit="handleEditFromDetails"
+        @delete="handleDeleteFromDetails"
+      />
+
+      <!-- Sensor Edit Modal (opens when edit is clicked from details) -->
       <SensorEditModal
         v-if="selectedSensor"
         :show="showSensorDetailModal"
@@ -274,6 +283,7 @@ import SensorCard from '~/components/SensorCard.vue'
 import AddSensorModal from '~/components/AddSensorModal.vue'
 import SensorEditModal from '~/components/SensorEditModal.vue'
 import DeleteSensorModal from '~/components/DeleteSensorModal.vue'
+import SensorDetailsModal from '~/components/SensorDetailsModal.vue'
 
 // Meta
 definePageMeta({
@@ -303,7 +313,8 @@ const { subscription, loadSubscription } = useSubscription()
 
 // Reactive data for modals and forms
 const showAddSensorModal = ref(false)
-const showSensorDetailModal = ref(false)
+const showSensorDetailsModal = ref(false)  // Main details modal
+const showSensorDetailModal = ref(false)   // Edit modal (keeping original name for compatibility)
 const showDeleteSensorModal = ref(false)
 const selectedSensor = ref(null)
 const sensorToDelete = ref(null)
@@ -426,9 +437,33 @@ const closeAddSensorModal = () => {
   addingSensor.value = false
 }
 
+// const openSensorDetailModal = (sensor) => {
+//   selectedSensor.value = sensor
+//   showSensorDetailsModal.value = true  // Open details modal instead of edit modal
+// }
+
 const openSensorDetailModal = (sensor) => {
+  console.log('openSensorDetailModal called with:', sensor)
+  console.log('Sensor type:', typeof sensor)
+  console.log('Is PointerEvent:', sensor?.constructor?.name === 'PointerEvent')
+  
   selectedSensor.value = sensor
-  showSensorDetailModal.value = true
+  showSensorDetailsModal.value = true
+}
+
+const closeSensorDetailsModal = () => {
+  selectedSensor.value = null
+  showSensorDetailsModal.value = false
+}
+
+const handleEditFromDetails = () => {
+  showSensorDetailsModal.value = false // Close details modal
+  showSensorDetailModal.value = true   // Open edit modal
+}
+
+const handleDeleteFromDetails = (sensor) => {
+  showSensorDetailsModal.value = false // Close details modal
+  openDeleteSensorModal(sensor)        // Open delete modal
 }
 
 const closeSensorDetailModal = () => {
@@ -523,7 +558,7 @@ const handleDeleteSensor = async (sensor) => {
     
     // Close modals
     closeDeleteSensorModal()
-    closeSensorDetailModal()
+    closeSensorDetailsModal()
     
   } catch (err) {
     console.error('Failed to delete sensor:', err)

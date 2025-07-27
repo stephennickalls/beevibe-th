@@ -9,23 +9,15 @@
         <div class="relative">
           <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-700">
             <svg v-if="sensor.sensor_type === 'temperature'" class="w-6 h-6 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"/>
+              <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.88 2.12z"/>
             </svg>
             <svg v-else-if="sensor.sensor_type === 'humidity'" class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.05 3.636a1 1 0 010 1.414 7 7 0 000 9.9 1 1 0 11-1.414 1.414 9 9 0 010-12.728 1 1 0 011.414 0zm9.9 0a1 1 0 011.414 0 9 9 0 010 12.728 1 1 0 11-1.414-1.414 7 7 0 000-9.9 1 1 0 010-1.414zM7.879 6.464a1 1 0 010 1.414 3 3 0 000 4.243 1 1 0 11-1.415 1.414 5 5 0 010-7.07 1 1 0 011.415 0zm4.242 0a1 1 0 011.415 0 5 5 0 010 7.072a1 1 0 01-1.415-1.415 3 3 0 000-4.242 1 1 0 010-1.415zM10 8a2 2 0 100 4 2 2 0 000-4z"/>
+              <path fill-rule="evenodd" d="M10 3s-6 5.419-6 8a6 6 0 1012 0c0-2.581-6-8-6-8z"/>
             </svg>
-            <svg v-else-if="sensor.sensor_type === 'weight'" class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+            <svg v-else-if="sensor.sensor_type === 'weight'" class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 48 50">
+              <path d="M3.8267 49.0903C2.93437 48.8741 2.13088 48.4093 1.44276 47.7117C0.429767 46.6847 0 45.6519 0 44.2445C0 43.7521 0.673992 39.4787 2.11696 30.8218C3.28128 23.8366 4.30398 17.8184 4.38963 17.4481C4.7943 15.6984 6.08237 14.2863 7.78466 13.7262C8.37711 13.5312 8.64529 13.5157 12.0481 13.4783C14.0453 13.4556 15.6794 13.4193 15.6794 13.3959C15.6794 13.3732 15.5773 13.1491 15.4522 12.8996C14.3821 10.7618 14.2998 7.87953 15.2424 5.55942C16.1715 3.27304 18.2794 1.29654 20.6552 0.484173C25.6745 -1.23219 31.0758 1.774 32.3346 6.98465C32.7812 8.83322 32.5164 11.2325 31.682 12.8996C31.5569 13.1491 31.4548 13.3725 31.4548 13.3959C31.4548 13.4186 33.0888 13.4563 35.0861 13.4783C39.1807 13.5232 39.3969 13.5557 40.5519 14.303C41.7567 15.0823 42.4823 16.1939 42.7943 17.738C42.9009 18.2663 43.9212 24.29 45.0613 31.1241C46.4487 39.4407 47.1342 43.784 47.1342 44.2582C47.1342 45.6513 46.701 46.6881 45.6914 47.7117C44.9885 48.4242 44.1984 48.8744 43.2634 49.0948C42.3882 49.3011 4.67871 49.2959 3.8267 49.0903ZM24.4848 12.6335C26.0732 12.2198 27.1944 10.881 27.2975 9.27482C27.4384 7.07899 25.7594 5.28183 23.5672 5.28183C21.3664 5.28183 19.6954 7.07045 19.8368 9.27482C19.9385 10.8591 21.0559 12.2116 22.6076 12.6286C23.2987 12.8141 23.7856 12.8168 24.4848 12.6335Z"/>
             </svg>
-            <svg v-else-if="sensor.sensor_type === 'sound'" class="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12a7.971 7.971 0 00-1.343-4.243 1 1 0 010-1.414z"/>
-            </svg>
-            <svg v-else-if="sensor.sensor_type === 'vibration'" class="w-6 h-6 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 6.707 6.293a1 1 0 00-1.414 1.414L8.586 11l-3.293 3.293a1 1 0 001.414 1.414L10 12.414l3.293 3.293a1 1 0 001.414-1.414L11.414 11l3.293-3.293z"/>
-            </svg>
-            <svg v-else-if="sensor.sensor_type === 'activity'" class="w-6 h-6 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 6.707 6.293a1 1 0 00-1.414 1.414L8.586 11l-3.293 3.293a1 1 0 001.414 1.414L10 12.414l3.293 3.293a1 1 0 001.414-1.414L11.414 11l3.293-3.293z"/>
-            </svg>
+            <!-- Default icon for any other sensor types -->
             <svg v-else class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
             </svg>
@@ -113,9 +105,9 @@
           </span>
         </div>
 
-        <!-- View Details Link (replacing the arrow) -->
-        <button 
-          @click="$emit('view-details', sensor)"
+        <!-- View Details Link -->
+         <button 
+          @click="handleViewDetails"
           class="text-blue-400 hover:text-blue-300 text-sm underline cursor-pointer transition-colors"
         >
           View Details
@@ -137,22 +129,19 @@ const props = defineProps({
 })
 
 // Events
-const emit = defineEmits(['view-details'])
+const emit = defineEmits(['click'])
 
-// Enhanced styling function for badges using the same color scheme
+// Enhanced styling function for badges - only temperature, humidity, weight
 const getSensorTypeBadgeColor = (type) => {
   const colors = {
     'temperature': 'bg-red-900/30 text-red-400 border border-red-500/30',
     'humidity': 'bg-blue-900/30 text-blue-400 border border-blue-500/30',
-    'weight': 'bg-yellow-900/30 text-yellow-400 border border-yellow-500/30',
-    'sound': 'bg-green-900/30 text-green-400 border border-green-500/30',
-    'vibration': 'bg-purple-900/30 text-purple-400 border border-purple-500/30',
-    'activity': 'bg-indigo-900/30 text-indigo-400 border border-indigo-500/30'
+    'weight': 'bg-yellow-900/30 text-yellow-400 border border-yellow-500/30'
   }
   return colors[type] || 'bg-gray-900/30 text-gray-400 border border-gray-500/30'
 }
 
-// Using same color scheme as SensorListItem
+// Battery color functions
 const getBatteryColor = (level) => {
   if (!level) return 'text-gray-400'
   if (level > 50) return 'text-green-400'
@@ -166,15 +155,17 @@ const getBatteryFillColor = (level) => {
   return 'bg-red-400'
 }
 
-// Utility functions matching SensorListItem
+const handleViewDetails = () => {
+  console.log('SensorCard: Emitting sensor:', props.sensor)
+  emit('click', props.sensor)
+}
+
+// Utility functions - simplified for only the three sensor types
 const formatSensorType = (type) => {
   const labels = {
     'temperature': 'Temperature',
     'humidity': 'Humidity', 
-    'weight': 'Weight Scale',
-    'sound': 'Sound Level',
-    'vibration': 'Vibration',
-    'activity': 'Activity'
+    'weight': 'Weight Scale'
   }
   return labels[type] || type.charAt(0).toUpperCase() + type.slice(1)
 }
@@ -214,7 +205,7 @@ const formatLastSeen = (timestamp) => {
 </script>
 
 <style scoped>
-/* Transition effects matching SensorListItem */
+/* Transition effects */
 .transition-colors {
   transition-property: color, background-color, border-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -232,7 +223,7 @@ const formatLastSeen = (timestamp) => {
   transform: translateY(-1px);
 }
 
-/* Status indicator colors matching SensorListItem */
+/* Status indicator colors */
 .bg-green-400 {
   background-color: #4ade80;
 }
@@ -261,19 +252,11 @@ const formatLastSeen = (timestamp) => {
   color: #60a5fa;
 }
 
-.text-purple-400 {
-  color: #c084fc;
-}
-
-.text-indigo-400 {
-  color: #818cf8;
-}
-
 .text-gray-400 {
   color: #9ca3af;
 }
 
-/* Background colors - matching dashboard scheme */
+/* Background colors */
 .bg-gray-900 {
   background-color: #111827;
 }
@@ -294,7 +277,7 @@ const formatLastSeen = (timestamp) => {
   border-color: #4b5563;
 }
 
-/* Badge background with opacity - matching icon colors */
+/* Badge backgrounds with opacity - only for the three sensor types */
 .bg-red-900\/30 {
   background-color: rgba(127, 29, 29, 0.3);
 }
@@ -307,23 +290,11 @@ const formatLastSeen = (timestamp) => {
   background-color: rgba(113, 63, 18, 0.3);
 }
 
-.bg-green-900\/30 {
-  background-color: rgba(20, 83, 45, 0.3);
-}
-
-.bg-purple-900\/30 {
-  background-color: rgba(88, 28, 135, 0.3);
-}
-
-.bg-indigo-900\/30 {
-  background-color: rgba(49, 46, 129, 0.3);
-}
-
 .bg-gray-900\/30 {
   background-color: rgba(17, 24, 39, 0.3);
 }
 
-/* Border colors with opacity - matching icon colors */
+/* Border colors with opacity - only for the three sensor types */
 .border-red-500\/30 {
   border-color: rgba(239, 68, 68, 0.3);
 }
@@ -334,18 +305,6 @@ const formatLastSeen = (timestamp) => {
 
 .border-yellow-500\/30 {
   border-color: rgba(234, 179, 8, 0.3);
-}
-
-.border-green-500\/30 {
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.border-purple-500\/30 {
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
-.border-indigo-500\/30 {
-  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .border-gray-500\/30 {

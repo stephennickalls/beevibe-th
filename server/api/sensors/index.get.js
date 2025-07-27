@@ -56,6 +56,7 @@ export default defineEventHandler(async (event) => {
       .from('sensors')
       .select(`
         id,
+        uuid,
         sensor_type,
         name,
         model,
