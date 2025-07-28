@@ -14,6 +14,20 @@
         <p class="text-gray-400">View detailed sensor data and trends for your hives</p>
       </div>
 
+      <!-- Error State -->
+      <div v-if="error" class="bg-red-900 border border-red-700 rounded-2xl p-6 mb-6">
+        <div class="flex items-center mb-2">
+          <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
+          </svg>
+          <h3 class="text-lg font-semibold text-red-300">Error</h3>
+        </div>
+        <p class="text-red-200">{{ error }}</p>
+        <button @click="refreshData" class="mt-3 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+          Try Again
+        </button>
+      </div>
+
       <!-- Controls Section -->
       <div class="bg-gray-900 rounded-2xl p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -23,10 +37,11 @@
             <select 
               v-model="selectedHiveId" 
               @change="onHiveChange"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :disabled="loading"
+              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
               <option value="">Choose a hive...</option>
-              <option v-for="hive in hives" :key="hive.id" :value="hive.id">
+              <option v-for="hive in hivesWithSensorData" :key="hive.id" :value="hive.id">
                 {{ hive.name || `Hive ${hive.id}` }}
               </option>
             </select>
@@ -38,7 +53,8 @@
             <select 
               v-model="selectedTimeRange" 
               @change="fetchSensorData"
-              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :disabled="!selectedHiveId || historicalLoading"
+              class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
               <option value="24h">Last 24 Hours</option>
               <option value="7d">Last 7 Days</option>
@@ -49,16 +65,17 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="bg-gray-900 rounded-2xl p-12 text-center">
+      <div v-if="historicalLoading" class="bg-gray-900 rounded-2xl p-12 text-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
         <p class="text-gray-400">Loading sensor data...</p>
       </div>
 
       <!-- No Hive Selected State -->
       <div v-else-if="!selectedHiveId" class="bg-gray-900 rounded-2xl p-12 text-center">
-        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M13 7H7v6h6V7z"/>
-          <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2z"/>
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" viewBox="0 0 55 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="55" height="10" rx="2" fill="currentColor"/>
+          <rect y="13" width="55" height="15" rx="2" fill="currentColor"/>
+          <path d="M53 31C54.1046 31 55 31.8954 55 33V54C55 55.1046 54.1046 56 53 56H2C0.895431 56 0 55.1046 0 54V33C0 31.8954 0.895431 31 2 31H53ZM19.5 36C18.6716 36 18 36.6716 18 37.5C18 38.3284 18.6716 39 19.5 39H37.5C38.3284 39 39 38.3284 39 37.5C39 36.6716 38.3284 36 37.5 36H19.5Z" fill="currentColor"/>
         </svg>
         <h3 class="text-xl font-semibold mb-2">Select a Hive</h3>
         <p class="text-gray-400">Choose a hive from the dropdown above to view its sensor analytics</p>
@@ -176,15 +193,31 @@ import * as d3 from 'd3'
 
 // Meta
 definePageMeta({
-  title: 'Analytics - BeeVibe Dashboard'
+  title: 'Analytics - BeeVibe Dashboard',
+  middleware: ['auth']
 })
 
-// Reactive data
-const loading = ref(false)
-const hives = ref([])
+// Get user from Supabase auth (same pattern as sensors.vue)
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
+// Use our centralized data composable (same as sensors.vue)
+const {
+  hivesWithSensorData,
+  sensorsWithLatestReadings,
+  loading,
+  error,
+  refreshData,
+  clearError
+} = useHiveData()
+
+// Reactive data for analytics-specific functionality
 const selectedHiveId = ref('')
 const selectedTimeRange = ref('24h')
 const sensorReadings = ref([])
+const historicalLoading = ref(false)
+
+// Mock alerts data - replace with real alerts from composable if available
 const activeAlerts = ref([])
 
 // Chart refs
@@ -281,7 +314,7 @@ const weightStats = computed(() => {
   }
 })
 
-// D3 Chart Functions
+// D3 Chart Functions (same as before)
 const createD3LineChart = (svgRef, data, color, yDomain, optimalRange = null, unit = '') => {
   if (!svgRef || !data || data.length === 0) return
 
@@ -332,18 +365,6 @@ const createD3LineChart = (svgRef, data, color, yDomain, optimalRange = null, un
     .style("stroke-dasharray", "2,2")
     .style("opacity", 0.1)
     .style("stroke", "#6B7280")
-
-  // Add optimal range if provided (but don't display background)
-  // if (optimalRange) {
-  //   g.append("rect")
-  //     .attr("x", 0)
-  //     .attr("y", yScale(optimalRange.max))
-  //     .attr("width", width)
-  //     .attr("height", yScale(optimalRange.min) - yScale(optimalRange.max))
-  //     .attr("fill", "#F59E0B")
-  //     .attr("opacity", 0.08)
-  //     .attr("rx", 2)
-  // }
 
   // Add gradient for line area
   const gradient = svg.append("defs")
@@ -511,67 +532,50 @@ const updateCharts = async () => {
   }
 }
 
-// Functions
-const fetchHives = async () => {
-  try {
-    const { data, error } = await $fetch('/api/hives')
-    
-    if (!error && data) {
-      hives.value = data.filter(hive => hive.is_active)
-    }
-  } catch (err) {
-    console.error('Error fetching hives:', err)
-  }
-}
-
+// Fetch historical sensor data using the same pattern as latest readings
 const fetchSensorData = async () => {
-  if (!selectedHiveId.value) return
-  
-  loading.value = true
-  
+  if (!selectedHiveId.value || !user.value) return
+
+  historicalLoading.value = true
+
   try {
     console.log('Fetching sensor data for hive:', selectedHiveId.value, 'time range:', selectedTimeRange.value)
-    
-    const { data, error } = await $fetch('/api/readings/history', {
+
+    // Use the same session/token approach as the working endpoints
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      throw new Error('No valid session found')
+    }
+
+    const response = await $fetch('/api/readings/history', {
       query: {
         hive_id: selectedHiveId.value,
         time_range: selectedTimeRange.value
+      },
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
       }
     })
-    
-    console.log('API Response:', { data, error })
-    
-    if (!error && data) {
-      console.log(`Received ${data.length} sensor readings`)
-      if (data.length > 0) {
-        console.log('Sample reading:', data[0])
-        console.log('Date range in data:', {
-          first: data[0]?.reading_time,
-          last: data[data.length - 1]?.reading_time
-        })
-      }
-      sensorReadings.value = data
+
+    console.log('API Response:', response)
+
+    if (response.error) {
+      throw new Error(response.error)
+    }
+
+    if (response.data) {
+      console.log(`Received ${response.data.length} sensor readings`)
+      sensorReadings.value = response.data
     } else {
-      console.error('API Error:', error)
+      console.log('No data in response')
       sensorReadings.value = []
     }
   } catch (err) {
     console.error('Error fetching sensor data:', err)
-    sensorReadings.value = []
+    // Use the same error handling pattern as useHiveData
+    throw err
   } finally {
-    loading.value = false
-  }
-}
-
-const fetchAlerts = async () => {
-  try {
-    const { data, error } = await $fetch('/api/alerts')
-    
-    if (!error && data) {
-      activeAlerts.value = data.filter(alert => !alert.resolved)
-    }
-  } catch (err) {
-    console.error('Error fetching alerts:', err)
+    historicalLoading.value = false
   }
 }
 
@@ -583,19 +587,16 @@ const onHiveChange = () => {
   }
 }
 
-const toggleSensorType = (sensorType) => {
-  // Removed - no longer needed
-}
-
 // Watch for data changes and update charts
 watch([temperatureData, humidityData, weightData], updateCharts, { deep: true })
 
 // Lifecycle
 onMounted(async () => {
-  await Promise.all([
-    fetchHives(),
-    fetchAlerts()
-  ])
+  console.log('Analytics page mounted')
+  console.log('User:', user.value)
+  
+  // Clear any existing errors (same pattern as sensors.vue)
+  clearError()
 })
 </script>
 
