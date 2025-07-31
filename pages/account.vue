@@ -46,29 +46,35 @@
 
           <!-- Profile Display -->
           <div v-if="!showEditProfile" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="flex items-center space-x-4">
-              <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-                <img v-if="userProfile.avatar_url" :src="userProfile.avatar_url" alt="Avatar" class="w-full h-full rounded-full object-cover">
-                <span v-else class="text-xl font-bold">{{ getInitials(userProfile.first_name, userProfile.last_name) }}</span>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold">{{ userProfile.first_name || 'No name' }} {{ userProfile.last_name || '' }}</h3>
-                <p class="text-gray-400">{{ userProfile.username || 'No username set' }}</p>
+            <div>
+              <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="text-sm text-gray-400">Full Name</label>
+                  <p class="text-white">{{ userProfile.first_name || 'No name' }} {{ userProfile.last_name || '' }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Username</label>
+                  <p class="text-white">{{ userProfile.username || 'No username set' }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Email</label>
+                  <p class="text-white">{{ userAuth.email || 'No email' }}</p>
+                </div>
               </div>
             </div>
             
-            <div class="space-y-2">
-              <div>
-                <label class="text-sm text-gray-400">Email</label>
-                <p class="text-white">{{ userAuth.email || 'No email' }}</p>
-              </div>
-              <div>
-                <label class="text-sm text-gray-400">Phone</label>
-                <p class="text-white">{{ userProfile.phone || 'Not provided' }}</p>
-              </div>
-              <div>
-                <label class="text-sm text-gray-400">Company</label>
-                <p class="text-white">{{ userProfile.company_name || 'Not provided' }}</p>
+            <div>
+              <h3 class="text-lg font-semibold mb-4">Contact Information</h3>
+              <div class="space-y-3">
+                <div>
+                  <label class="text-sm text-gray-400">Phone</label>
+                  <p class="text-white">{{ userProfile.phone || 'Not provided' }}</p>
+                </div>
+                <div>
+                  <label class="text-sm text-gray-400">Company</label>
+                  <p class="text-white">{{ userProfile.company_name || 'Not provided' }}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -140,6 +146,162 @@
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscription Plan Details -->
+        <div class="bg-gray-900 rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold">Subscription Plan</h2>
+            <div class="flex items-center space-x-2">
+              <div class="w-3 h-3 rounded-full" :class="subscriptionStatusColor"></div>
+              <span class="text-sm text-gray-400">{{ subscription?.hasActiveSubscription ? 'Active' : 'Free Plan' }}</span>
+            </div>
+          </div>
+
+          <div v-if="subscriptionLoading" class="flex justify-center items-center h-32">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+
+          <div v-else class="space-y-6">
+            <!-- Current Plan Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="bg-gray-800 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="font-semibold text-lg">{{ subscription?.planDisplayName || 'Free' }}</h3>
+                  <span class="text-sm font-medium px-2 py-1 rounded" :class="planBadgeClasses">
+                    {{ subscription?.hasActiveSubscription ? 'PAID' : 'FREE' }}
+                  </span>
+                </div>
+                <p class="text-2xl font-bold text-blue-400">{{ getPlanPrice() }}</p>
+                <p class="text-sm text-gray-400">{{ subscription?.hasActiveSubscription ? 'per month' : 'forever' }}</p>
+              </div>
+
+              <div class="bg-gray-800 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-400 mb-2">Hive Limit</h4>
+                <div class="flex items-center justify-between">
+                  <span class="text-xl font-bold" :class="hiveUsageColor">
+                    {{ currentUsage.hives }}/{{ formatLimit(subscription?.limits?.max_hives) }}
+                  </span>
+                  <div class="w-16 bg-gray-700 rounded-full h-2">
+                    <div 
+                      class="h-2 rounded-full transition-all duration-300" 
+                      :class="hiveUsageBarColor"
+                      :style="{ width: hiveUsagePercentage + '%' }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gray-800 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-400 mb-2">Sensor Limit</h4>
+                <div class="flex items-center justify-between">
+                  <span class="text-xl font-bold" :class="sensorUsageColor">
+                    {{ currentUsage.sensors }}/{{ formatLimit(subscription?.limits?.max_sensors_total) }}
+                  </span>
+                  <div class="w-16 bg-gray-700 rounded-full h-2">
+                    <div 
+                      class="h-2 rounded-full transition-all duration-300" 
+                      :class="sensorUsageBarColor"
+                      :style="{ width: sensorUsagePercentage + '%' }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Plan Features -->
+            <div class="bg-gray-800 rounded-lg p-4">
+              <h4 class="font-medium mb-3">Plan Features</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                  </svg>
+                  <span class="text-sm">{{ formatLimit(subscription?.limits?.max_hives) }} Hives</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                  </svg>
+                  <span class="text-sm">{{ formatLimit(subscription?.limits?.max_sensors_total) }} Total Sensors</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                  </svg>
+                  <span class="text-sm">{{ formatLimit(subscription?.limits?.max_sensors_per_hive) }} Sensors per Hive</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                  </svg>
+                  <span class="text-sm">Real-time Monitoring</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                  </svg>
+                  <span class="text-sm">Data Export</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                  </svg>
+                  <span class="text-sm">Email Alerts</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upgrade Section -->
+            <div v-if="!subscription?.hasActiveSubscription || showUpgradeOptions" class="bg-gradient-to-r from-blue-900 to-purple-900 rounded-lg p-4 border border-blue-700">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-semibold mb-1">{{ subscription?.hasActiveSubscription ? 'Upgrade Your Plan' : 'Upgrade to Premium' }}</h4>
+                  <p class="text-sm text-gray-300">
+                    {{ upgradeMessage || 'Get more hives, sensors, and advanced features with a premium plan.' }}
+                  </p>
+                </div>
+                <div class="flex space-x-2">
+                  <button 
+                    @click="navigateToPlans"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    View Plans
+                  </button>
+                  <button 
+                    v-if="subscription?.hasActiveSubscription"
+                    @click="showUpgradeOptions = !showUpgradeOptions"
+                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    {{ showUpgradeOptions ? 'Hide' : 'Compare' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subscription Details (for paid plans) -->
+            <div v-if="subscription?.hasActiveSubscription && subscription?.subscription" class="bg-gray-800 rounded-lg p-4">
+              <h4 class="font-medium mb-3">Subscription Details</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <label class="text-gray-400">Status</label>
+                  <p class="text-white capitalize">{{ subscription.subscription.status }}</p>
+                </div>
+                <div>
+                  <label class="text-gray-400">Billing Cycle</label>
+                  <p class="text-white">{{ subscription.subscription.billing_cycle || 'Monthly' }}</p>
+                </div>
+                <div>
+                  <label class="text-gray-400">Started</label>
+                  <p class="text-white">{{ formatDate(subscription.subscription.created_at) }}</p>
+                </div>
+                <div>
+                  <label class="text-gray-400">Next Billing</label>
+                  <p class="text-white">{{ formatDate(subscription.subscription.next_billing_date) || 'N/A' }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -251,23 +413,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 // Meta with middleware
 definePageMeta({
   title: 'Account Management - BeeVibe Dashboard',
-  middleware: ['auth'] // Apply auth middleware
+  middleware: ['auth']
 })
 
-// Use Supabase composables (recommended for Nuxt 3)
+// Use Supabase composables
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const router = useRouter()
 
+// Use subscription composable
+const { subscription, loadSubscription, getPlanLimits, getUpgradeMessage } = useSubscription()
+
+// Use hive data for current usage statistics
+const { hivesWithSensorData, sensorsWithLatestReadings } = useHiveData()
+
 // Reactive data
 const loading = ref(true)
 const error = ref(null)
+const subscriptionLoading = ref(true)
 const activeAlerts = ref([])
 const userAuth = ref({})
 const userProfile = ref({})
@@ -280,6 +449,7 @@ const accountStats = ref({
 // Modal states
 const showEditProfile = ref(false)
 const showChangePassword = ref(false)
+const showUpgradeOptions = ref(false)
 
 // Loading states
 const updatingProfile = ref(false)
@@ -299,9 +469,90 @@ const passwordForm = ref({
   confirm_password: ''
 })
 
+// Computed properties for current usage
+const currentUsage = computed(() => ({
+  hives: hivesWithSensorData.value?.length || 0,
+  sensors: sensorsWithLatestReadings.value?.length || 0
+}))
+
+// Subscription-related computed properties
+const subscriptionStatusColor = computed(() => {
+  if (!subscription.value) return 'bg-gray-500'
+  return subscription.value.hasActiveSubscription ? 'bg-green-500' : 'bg-yellow-500'
+})
+
+const planBadgeClasses = computed(() => {
+  if (!subscription.value) return 'bg-gray-600 text-gray-300'
+  return subscription.value.hasActiveSubscription 
+    ? 'bg-green-600 text-green-100' 
+    : 'bg-yellow-600 text-yellow-100'
+})
+
+const hiveUsageColor = computed(() => {
+  if (!subscription.value) return 'text-gray-300'
+  const limit = subscription.value.limits?.max_hives
+  if (limit === -1) return 'text-green-400'
+  const usage = currentUsage.value.hives
+  if (usage >= limit) return 'text-red-400'
+  if (usage >= limit * 0.8) return 'text-yellow-400'
+  return 'text-green-400'
+})
+
+const sensorUsageColor = computed(() => {
+  if (!subscription.value) return 'text-gray-300'
+  const limit = subscription.value.limits?.max_sensors_total
+  if (limit === -1) return 'text-green-400'
+  const usage = currentUsage.value.sensors
+  if (usage >= limit) return 'text-red-400'
+  if (usage >= limit * 0.8) return 'text-yellow-400'
+  return 'text-green-400'
+})
+
+const hiveUsagePercentage = computed(() => {
+  if (!subscription.value) return 0
+  const limit = subscription.value.limits?.max_hives
+  if (limit === -1) return 0
+  return Math.min(100, (currentUsage.value.hives / limit) * 100)
+})
+
+const sensorUsagePercentage = computed(() => {
+  if (!subscription.value) return 0
+  const limit = subscription.value.limits?.max_sensors_total
+  if (limit === -1) return 0
+  return Math.min(100, (currentUsage.value.sensors / limit) * 100)
+})
+
+const hiveUsageBarColor = computed(() => {
+  const percentage = hiveUsagePercentage.value
+  if (percentage >= 100) return 'bg-red-500'
+  if (percentage >= 80) return 'bg-yellow-500'
+  return 'bg-green-500'
+})
+
+const sensorUsageBarColor = computed(() => {
+  const percentage = sensorUsagePercentage.value
+  if (percentage >= 100) return 'bg-red-500'
+  if (percentage >= 80) return 'bg-yellow-500'
+  return 'bg-green-500'
+})
+
+const upgradeMessage = computed(() => {
+  if (!subscription.value) return ''
+  return getUpgradeMessage(currentUsage.value)
+})
+
 // Methods
-const getInitials = (firstName, lastName) => {
-  return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase()
+const formatLimit = (limit) => {
+  return limit === -1 ? '∞' : limit?.toString() || '0'
+}
+
+const getPlanPrice = () => {
+  if (!subscription.value) return '$0'
+  
+  const planLimits = getPlanLimits()
+  const currentPlan = subscription.value.plan || 'free'
+  
+  return planLimits[currentPlan]?.price || '$0'
 }
 
 const formatDate = (dateString) => {
@@ -316,7 +567,6 @@ const fetchUserData = async () => {
     
     console.log('=== Fetching user data ===')
     
-    // User is guaranteed to exist due to middleware, but double-check
     if (!user.value) {
       throw new Error('No user found. Please log in.')
     }
@@ -331,7 +581,7 @@ const fetchUserData = async () => {
       last_sign_in_at: user.value.last_sign_in_at
     }
     
-    // Try to fetch user profile from database
+    // Fetch user profile
     try {
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
@@ -341,7 +591,6 @@ const fetchUserData = async () => {
       
       if (profileError && profileError.code !== 'PGRST116') {
         console.warn('Profile fetch error:', profileError)
-        // Create a default profile if it doesn't exist
         userProfile.value = {
           id: user.value.id,
           username: '',
@@ -436,6 +685,18 @@ const fetchUserData = async () => {
   }
 }
 
+const loadSubscriptionData = async () => {
+  try {
+    subscriptionLoading.value = true
+    await loadSubscription()
+    console.log('✅ Subscription data loaded')
+  } catch (err) {
+    console.error('❌ Error loading subscription:', err)
+  } finally {
+    subscriptionLoading.value = false
+  }
+}
+
 const updateProfile = async () => {
   try {
     updatingProfile.value = true
@@ -510,12 +771,31 @@ const signOut = async () => {
   }
 }
 
+const navigateToPlans = () => {
+  router.push('/pricing')
+}
+
 // Lifecycle
 onMounted(async () => {
-  await fetchUserData()
+  await Promise.all([
+    fetchUserData(),
+    loadSubscriptionData()
+  ])
 })
 </script>
 
 <style scoped>
 /* Add any component-specific styles here */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
 </style>
