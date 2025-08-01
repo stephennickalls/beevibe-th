@@ -113,10 +113,10 @@
         </button>
       </div>
 
-      <!-- Apiaries Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Apiaries Grid - Updated for flexible sizing -->
+      <div v-else class="space-y-6">
         <ApiaryCard
-          v-for="apiary in apiaries"
+          v-for="apiary in apiariesWithFullHiveData"
           :key="apiary.id"
           :apiary="apiary"
           @click="viewApiaryDetails"
@@ -157,6 +157,14 @@ const activeAlerts = ref([])
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+// Use the centralized hive data composable
+const {
+  hivesWithSensorData,
+  loading: hivesLoading,
+  error: hivesError,
+  loadAllData: loadHiveData
+} = useHiveData()
+
 // Computed
 const totalHives = computed(() => {
   return apiaries.value.reduce((total, apiary) => total + (apiary.hive_count || 0), 0)
@@ -164,6 +172,24 @@ const totalHives = computed(() => {
 
 const activeApiaries = computed(() => {
   return apiaries.value.filter(a => a.is_active).length
+})
+
+// Enhanced computed for apiaries with full hive data
+const apiariesWithFullHiveData = computed(() => {
+  if (!apiaries.value.length || !hivesWithSensorData.value.length) {
+    return apiaries.value
+  }
+
+  return apiaries.value.map(apiary => {
+    // Get hives for this apiary from the composable data
+    const apiaryHives = hivesWithSensorData.value.filter(hive => hive.apiary_id === apiary.id)
+    
+    return {
+      ...apiary,
+      hives: apiaryHives,
+      hive_count: apiaryHives.length
+    }
+  })
 })
 
 // Methods
@@ -223,14 +249,21 @@ const handleApiaryCreated = (newApiary) => {
 }
 
 // Lifecycle
-onMounted(() => {
-  loadApiaries()
+onMounted(async () => {
+  // Load both apiaries and hive data
+  await Promise.all([
+    loadApiaries(),
+    loadHiveData()
+  ])
 })
 
 // Watch for user changes
-watch(user, (newUser) => {
+watch(user, async (newUser) => {
   if (newUser) {
-    loadApiaries()
+    await Promise.all([
+      loadApiaries(),
+      loadHiveData()
+    ])
   } else {
     apiaries.value = []
   }

@@ -56,7 +56,7 @@
           <span class="text-xs text-green-400">{{ hive.online_sensor_count }}/{{ hive.sensor_count }} online</span>
         </div>
       </div>
-      <span class="text-xs text-blue-400">View Details →</span>
+      <span class="text-xs text-blue-400">View Hive Details →</span>
     </div>
 
     <!-- Battery Warning Indicator -->

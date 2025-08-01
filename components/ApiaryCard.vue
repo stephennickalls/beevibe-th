@@ -38,9 +38,9 @@
       </div>
     </div>
 
-    <!-- Hives List -->
-    <div class="mb-4">
-      <div class="flex items-center justify-between mb-2">
+    <!-- Hives Section -->
+    <div>
+      <div class="flex items-center justify-between mb-3">
         <h4 class="text-sm font-medium text-gray-300">Hives</h4>
         <span class="text-xs text-gray-400">{{ apiary.hive_count || 0 }} total</span>
       </div>
@@ -54,47 +54,36 @@
         <p class="text-xs text-gray-600 mt-1">Click to add hives</p>
       </div>
       
-      <!-- Hives List -->
-      <div v-else class="space-y-2 max-h-40 overflow-y-auto">
+      <!-- Hives Grid - Auto-sizing grid that grows both horizontally and vertically -->
+      <div v-else class="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-3">
         <div
           v-for="hive in apiary.hives"
           :key="hive.id"
-          @click.stop="$emit('hive-click', hive, apiary)"
-          class="bg-gray-900 rounded-lg p-3 hover:bg-gray-800 transition-colors cursor-pointer border border-gray-700 hover:border-gray-600"
+          class="min-w-0"
         >
-          <div class="flex justify-between items-start">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center space-x-2 mb-1">
-                <span class="text-sm font-medium truncate">{{ hive.name || `Hive ${hive.id}` }}</span>
-                <div :class="hive.is_active ? 'bg-green-400' : 'bg-gray-400'" class="w-1.5 h-1.5 rounded-full flex-shrink-0"></div>
-              </div>
-              <div class="flex items-center space-x-3 text-xs text-gray-400">
-                <span v-if="hive.sensor_count">{{ hive.sensor_count }} sensors</span>
-                <span v-if="hive.installation_date">{{ formatDate(hive.installation_date) }}</span>
-              </div>
-            </div>
-            <div class="text-xs text-blue-400 flex-shrink-0 ml-2">
-              View →
-            </div>
-          </div>
+          <HiveCard
+            :hive="hive"
+            @click="$emit('hive-click', hive, apiary)"
+          />
         </div>
       </div>
     </div>
 
     <!-- Apiary Footer -->
-    <div class="flex justify-between items-center pt-3 border-t border-gray-700">
+    <div class="flex justify-between items-center pt-3 mt-3 border-t border-gray-700">
       <div class="flex items-center space-x-2">
         <span class="text-xs text-gray-400">
           {{ apiary.installation_date ? `Created ${formatDate(apiary.installation_date)}` : 'Recently created' }}
         </span>
       </div>
-      <span class="text-xs text-blue-400">View Details →</span>
+      <span class="text-xs text-blue-400">View Apiary Details →</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import HiveCard from './HiveCard.vue'
 
 // Props
 const props = defineProps({

@@ -10,7 +10,7 @@
 
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
-        <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-500" viewBox="0 0 24 24">
+        <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-600" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -19,7 +19,7 @@
 
       <!-- Error State -->
       <div v-else-if="error" class="text-center py-12">
-        <div class="bg-red-900/30 border border-red-500/30 rounded-lg p-6 max-w-md mx-auto">
+        <div class="bg-red-900/30 border border-red-400/30 rounded-lg p-6 max-w-md mx-auto">
           <svg class="w-12 h-12 mx-auto mb-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
           </svg>
@@ -78,15 +78,6 @@
               <span>Edit Apiary</span>
             </button>
             <button 
-              @click="showAddHiveModal = true"
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
-              </svg>
-              <span>Add Hive</span>
-            </button>
-            <button 
               @click="showDeleteModal = true"
               class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center space-x-2"
             >
@@ -99,68 +90,31 @@
           </div>
         </div>
 
-        <!-- Apiary Information Cards -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <!-- Basic Information -->
-          <div class="bg-gray-800 rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-4">Basic Information</h3>
-            <div class="space-y-3">
-              <div v-if="apiary.description">
-                <span class="text-sm text-gray-400">Description:</span>
-                <p class="text-gray-200">{{ apiary.description }}</p>
-              </div>
-              <div v-if="apiary.installation_date">
-                <span class="text-sm text-gray-400">Created:</span>
-                <p class="text-gray-200">{{ formatDate(apiary.installation_date) }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-gray-400">Last Updated:</span>
-                <p class="text-gray-200">{{ formatDate(apiary.updated_at) }}</p>
-              </div>
+        <!-- Basic Information Strip (Full Width) -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+            <!-- Basic Info -->
+            <div>
+              <span class="text-sm text-gray-400">Description:</span>
+              <p class="text-gray-200">{{ apiary.description || 'No description' }}</p>
             </div>
-          </div>
-
-          <!-- Location Information -->
-          <div class="bg-gray-800 rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-4">Location</h3>
-            <div class="space-y-3">
-              <div v-if="apiary.address">
-                <span class="text-sm text-gray-400">Address:</span>
-                <p class="text-gray-200">{{ apiary.address }}</p>
-              </div>
-              <div v-if="apiary.latitude && apiary.longitude">
-                <span class="text-sm text-gray-400">Coordinates:</span>
-                <p class="text-gray-200">
-                  {{ parseFloat(apiary.latitude).toFixed(6) }}, {{ parseFloat(apiary.longitude).toFixed(6) }}
-                </p>
-              </div>
-              <div v-if="apiary.latitude && apiary.longitude" class="pt-2">
-                <button 
-                  @click="showMapModal = true"
-                  class="text-sm bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded transition-colors"
-                >
-                  View on Map
-                </button>
-              </div>
+            
+            <!-- Created Date -->
+            <div>
+              <span class="text-sm text-gray-400">Created:</span>
+              <p class="text-gray-200">{{ formatDate(apiary.installation_date) }}</p>
             </div>
-          </div>
-
-          <!-- Statistics -->
-          <div class="bg-gray-800 rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-4">Statistics</h3>
-            <div class="space-y-3">
-              <div>
-                <span class="text-sm text-gray-400">Total Hives:</span>
-                <p class="text-2xl font-bold text-blue-400">{{ hives.length }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-gray-400">Active Hives:</span>
-                <p class="text-lg text-green-400">{{ activeHiveCount }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-gray-400">Total Sensors:</span>
-                <p class="text-lg text-gray-200">{{ totalSensorCount }}</p>
-              </div>
+            
+            <!-- Last Updated -->
+            <div>
+              <span class="text-sm text-gray-400">Last Updated:</span>
+              <p class="text-gray-200">{{ formatDate(apiary.updated_at) }}</p>
+            </div>
+            
+            <!-- Hive Count -->
+            <div>
+              <span class="text-sm text-gray-400">Total Hives:</span>
+              <p class="text-2xl font-bold text-blue-400">{{ apiaryHives.length }}</p>
             </div>
           </div>
         </div>
@@ -168,31 +122,33 @@
         <!-- Hives Section -->
         <div class="bg-gray-800 rounded-lg p-6">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold">Hives ({{ hives.length }})</h3>
+            <h3 class="text-xl font-semibold">Hives ({{ apiaryHives.length }})</h3>
             <div class="flex items-center space-x-4">
               <button 
-                @click="showAddHiveModal = true"
-                class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
-                </svg>
-                <span>Add Hive</span>
-              </button>
-              <button 
                 @click="showAssignHiveModal = true"
-                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center space-x-2"
+                class="px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-gray-900 rounded-lg transition-colors flex items-center space-x-2"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
                 </svg>
                 <span>Assign Existing Hive</span>
               </button>
+              
+              <button 
+                @click="showUnassignHiveModal = true"
+                :disabled="apiaryHives.length === 0"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
+                <span>Unassign Hive</span>
+              </button>
             </div>
           </div>
 
           <!-- No Hives State -->
-          <div v-if="hives.length === 0" class="text-center py-12">
+          <div v-if="apiaryHives.length === 0" class="text-center py-12">
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
             </svg>
@@ -200,75 +156,23 @@
             <p class="text-gray-400 mb-6">This apiary doesn't have any hives assigned yet.</p>
             <div class="flex justify-center space-x-3">
               <button 
-                @click="showAddHiveModal = true"
-                class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-              >
-                Create New Hive
-              </button>
-              <button 
                 @click="showAssignHiveModal = true"
-                class="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                class="px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-gray-900 rounded-lg transition-colors"
               >
                 Assign Existing Hive
               </button>
             </div>
           </div>
 
-          <!-- Hives Grid -->
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Hives Grid using HiveCard Component without Remove Buttons -->
+          <div v-else class="space-y-4">
             <div 
-              v-for="hive in hives" 
+              v-for="hive in apiaryHives"
               :key="hive.id"
-              class="bg-gray-900 rounded-lg p-4 hover:bg-gray-800 transition-colors border border-gray-700 hover:border-gray-600"
+              class="cursor-pointer"
+              @click="viewHive(hive)"
             >
-              <div class="flex justify-between items-start mb-3">
-                <div class="flex-1">
-                  <h4 class="font-medium text-lg truncate">{{ hive.name || `Hive ${hive.id}` }}</h4>
-                  <p v-if="hive.description" class="text-xs text-gray-400 truncate">{{ hive.description }}</p>
-                  <div class="flex items-center space-x-2 mt-1">
-                    <div :class="hive.is_active ? 'bg-green-400' : 'bg-gray-400'" class="w-2 h-2 rounded-full"></div>
-                    <span class="text-xs" :class="hive.is_active ? 'text-green-400' : 'text-gray-400'">
-                      {{ hive.is_active ? 'Active' : 'Inactive' }}
-                    </span>
-                  </div>
-                </div>
-                <div class="flex space-x-1">
-                  <button 
-                    @click="viewHive(hive)"
-                    class="p-1 text-gray-400 hover:text-blue-400 transition-colors"
-                    title="View hive details"
-                  >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                      <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                  </button>
-                  <button 
-                    @click="removeHive(hive)"
-                    class="p-1 text-gray-400 hover:text-red-400 transition-colors"
-                    title="Remove from apiary"
-                  >
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <div class="flex items-center space-x-2 text-xs text-gray-400">
-                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
-                  </svg>
-                  <span>{{ formatDate(hive.installation_date || hive.created_at) }}</span>
-                </div>
-                <div v-if="hive.sensor_count" class="flex items-center space-x-2 text-xs text-gray-400">
-                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13H14a1 1 0 01-1-1z"/>
-                  </svg>
-                  <span>{{ hive.sensor_count }} sensors</span>
-                </div>
-              </div>
+              <HiveCard :hive="hive" />
             </div>
           </div>
         </div>
@@ -290,7 +194,7 @@
         <h3 class="text-lg font-semibold mb-4">Delete Apiary</h3>
         <p class="text-gray-300 mb-4">
           Are you sure you want to delete "{{ apiary?.name }}"? 
-          {{ hives.length > 0 ? `This will unassign ${hives.length} hive${hives.length > 1 ? 's' : ''} from this apiary.` : '' }}
+          {{ apiaryHives.length > 0 ? `This will unassign ${apiaryHives.length} hive${apiaryHives.length > 1 ? 's' : ''} from this apiary.` : '' }}
         </p>
         <div class="flex justify-end space-x-3">
           <button 
@@ -310,19 +214,6 @@
       </div>
     </div>
 
-    <!-- Add Hive Modal -->
-    <AddHiveModal
-      :show="showAddHiveModal"
-      :creating="addingHive"
-      :subscription="subscription"
-      :current-usage="currentUsage"
-      :can-add="canAddHive"
-      :upgrade-message="upgradeMessage"
-      :pre-selected-apiary="apiary"
-      @close="showAddHiveModal = false"
-      @create="handleCreateHive"
-    />
-
     <!-- Assign Existing Hive Modal -->
     <AssignHiveModal
       :show="showAssignHiveModal"
@@ -333,31 +224,14 @@
       @assign="handleAssignHive"
     />
 
-    <!-- Remove Hive Confirmation Modal -->
-    <div v-if="showRemoveHiveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-gray-800 rounded-lg p-6 max-w-md mx-4">
-        <h3 class="text-lg font-semibold mb-4">Remove Hive from Apiary</h3>
-        <p class="text-gray-300 mb-4">
-          Are you sure you want to remove "{{ hiveToRemove?.name }}" from this apiary? 
-          The hive will become unassigned but will not be deleted.
-        </p>
-        <div class="flex justify-end space-x-3">
-          <button 
-            @click="showRemoveHiveModal = false"
-            class="px-4 py-2 text-gray-400 hover:text-white"
-          >
-            Cancel
-          </button>
-          <button 
-            @click="confirmRemoveHive"
-            :disabled="removingHive"
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
-          >
-            {{ removingHive ? 'Removing...' : 'Remove' }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Unassign Hive Modal Component -->
+    <UnassignHiveModal
+      ref="unassignHiveModalRef"
+      :show="showUnassignHiveModal"
+      :hives="apiaryHives"
+      @close="showUnassignHiveModal = false"
+      @unassign="handleUnassignHive"
+    />
 
     <!-- Map Modal Placeholder -->
     <div v-if="showMapModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -383,6 +257,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import HiveCard from '~/components/HiveCard.vue'
 
 // Route and navigation
 const route = useRoute()
@@ -398,48 +273,48 @@ definePageMeta({
 const loading = ref(true)
 const error = ref(null)
 const apiary = ref({})
-const hives = ref([])
-const allHives = ref([])
 const activeAlerts = ref([])
 
 // Modal states
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
-const showAddHiveModal = ref(false)
 const showAssignHiveModal = ref(false)
-const showRemoveHiveModal = ref(false)
+const showUnassignHiveModal = ref(false)
 const showMapModal = ref(false)
+
+// Modal refs
+const unassignHiveModalRef = ref(null)
 
 // Loading states
 const deleting = ref(false)
-const addingHive = ref(false)
 const assigningHive = ref(false)
 const removingHive = ref(false)
-
-// Form data
-const hiveToRemove = ref(null)
 
 // Composables
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const { subscription, loadSubscription } = useSubscription()
 
-// Computed properties
-const activeHiveCount = computed(() => {
-  return hives.value.filter(h => h.is_active).length
-})
+// Use the centralized hive data composable for sensor data
+const {
+  hivesWithSensorData,
+  refreshData: refreshHiveData
+} = useHiveData()
 
-const totalSensorCount = computed(() => {
-  return hives.value.reduce((total, hive) => total + (hive.sensor_count || 0), 0)
+// Computed properties
+const apiaryHives = computed(() => {
+  if (!apiary.value?.id || !hivesWithSensorData.value) return []
+  return hivesWithSensorData.value.filter(hive => hive.apiary_id === apiary.value.id)
 })
 
 const unassignedHives = computed(() => {
-  return allHives.value.filter(hive => !hive.apiary_id)
+  if (!hivesWithSensorData.value) return []
+  return hivesWithSensorData.value.filter(hive => !hive.apiary_id)
 })
 
 const currentUsage = computed(() => ({
-  hives: allHives.value?.length || 0,
-  sensors: 0 // Would need to fetch sensor count
+  hives: hivesWithSensorData.value?.length || 0,
+  sensors: 0
 }))
 
 const canAddHive = computed(() => {
@@ -483,9 +358,6 @@ const copyToClipboard = async (text, type = 'text') => {
 const loadApiaryDetails = async () => {
   if (!user.value) return
   
-  loading.value = true
-  error.value = null
-  
   try {
     const token = await getAuthToken()
     if (!token) {
@@ -503,35 +375,10 @@ const loadApiaryDetails = async () => {
     }
     
     apiary.value = response.data
-    hives.value = response.data.hives || []
     
   } catch (err) {
     console.error('Error loading apiary details:', err)
     error.value = err.message || 'Failed to load apiary details'
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadAllHives = async () => {
-  if (!user.value) return
-  
-  try {
-    const token = await getAuthToken()
-    if (!token) return
-
-    const response = await $fetch('/api/hives', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-    
-    if (response.data) {
-      allHives.value = response.data
-    }
-    
-  } catch (err) {
-    console.error('Error loading all hives:', err)
   }
 }
 
@@ -578,46 +425,6 @@ const confirmDelete = async () => {
   }
 }
 
-const handleCreateHive = async (hiveData) => {
-  addingHive.value = true
-  
-  try {
-    const token = await getAuthToken()
-    if (!token) {
-      throw new Error('Authentication token not available')
-    }
-
-    // Include apiary_id in hive data
-    const hiveWithApiary = {
-      ...hiveData,
-      apiary_id: apiary.value.id
-    }
-
-    const response = await $fetch('/api/hives', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: hiveWithApiary
-    })
-    
-    if (response.error) {
-      throw new Error(response.error)
-    }
-    
-    // Add new hive to local list
-    hives.value.push(response.data)
-    showAddHiveModal.value = false
-    
-  } catch (err) {
-    console.error('Error creating hive:', err)
-    alert('Failed to create hive: ' + (err.message || 'Unknown error'))
-  } finally {
-    addingHive.value = false
-  }
-}
-
 const handleAssignHive = async (hiveId) => {
   assigningHive.value = true
   
@@ -640,7 +447,7 @@ const handleAssignHive = async (hiveId) => {
         'Content-Type': 'application/json'
       },
       body: {
-        name: hiveToAssign.name, // Include the current name
+        name: hiveToAssign.name,
         description: hiveToAssign.description,
         apiary_id: apiary.value.id,
         installation_date: hiveToAssign.installation_date,
@@ -652,9 +459,8 @@ const handleAssignHive = async (hiveId) => {
       throw new Error(response.error)
     }
     
-    // Refresh the hives list
-    await loadApiaryDetails()
-    await loadAllHives()
+    // Refresh hive data to get updated assignments
+    await refreshHiveData()
     showAssignHiveModal.value = false
     
   } catch (err) {
@@ -669,13 +475,8 @@ const viewHive = (hive) => {
   navigateTo(`/hives/${hive.id}`)
 }
 
-const removeHive = (hive) => {
-  hiveToRemove.value = hive
-  showRemoveHiveModal.value = true
-}
-
-const confirmRemoveHive = async () => {
-  if (!hiveToRemove.value) return
+const confirmRemoveHive = async (hive) => {
+  if (!hive) return
   
   removingHive.value = true
   
@@ -685,18 +486,18 @@ const confirmRemoveHive = async () => {
       throw new Error('Authentication token not available')
     }
 
-    const response = await $fetch(`/api/hives/${hiveToRemove.value.id}`, {
+    const response = await $fetch(`/api/hives/${hive.id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: {
-        name: hiveToRemove.value.name, // Include the current name
-        description: hiveToRemove.value.description,
+        name: hive.name,
+        description: hive.description,
         apiary_id: null, // Remove from apiary
-        installation_date: hiveToRemove.value.installation_date,
-        is_active: hiveToRemove.value.is_active
+        installation_date: hive.installation_date,
+        is_active: hive.is_active
       }
     })
     
@@ -704,10 +505,9 @@ const confirmRemoveHive = async () => {
       throw new Error(response.error)
     }
     
-    // Remove from local list
-    hives.value = hives.value.filter(h => h.id !== hiveToRemove.value.id)
+    // Refresh hive data to get updated assignments
+    await refreshHiveData()
     showRemoveHiveModal.value = false
-    hiveToRemove.value = null
     
   } catch (err) {
     console.error('Error removing hive:', err)
@@ -717,13 +517,23 @@ const confirmRemoveHive = async () => {
   }
 }
 
-// Lifecycle
+// Lifecycle - SIMPLIFIED to avoid loading issues
 onMounted(async () => {
-  await Promise.all([
-    loadApiaryDetails(),
-    loadAllHives(),
-    loadSubscription()
-  ])
+  try {
+    await Promise.all([
+      loadApiaryDetails(),
+      refreshHiveData(), // Load hive data with sensors
+      loadSubscription?.() || Promise.resolve()
+    ])
+  } catch (err) {
+    console.error('Error during mount:', err)
+    if (!error.value) {
+      error.value = 'Failed to load page'
+    }
+  } finally {
+    // ALWAYS set loading to false
+    loading.value = false
+  }
 })
 </script>
 
