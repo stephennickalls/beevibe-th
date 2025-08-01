@@ -1,4 +1,4 @@
-// server/api/hives/index.post.js - COMPLETE FIXED VERSION
+// server/api/hives/index.post.js - Fixed without hardcoded service key
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
@@ -8,12 +8,19 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const supabaseUrl = config.public?.supabaseUrl
     const anonKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NTY1MCwiZXhwIjoyMDUyODMxNjUwfQ.VVEw8Bob9AjV_WeBsVHLdNKMRUWq2QLeBHAG8o1is7s'
+    const serviceRoleKey = config.supabaseServiceRoleKey
     
     if (!supabaseUrl || !anonKey) {
       throw createError({
         statusCode: 500,
         statusMessage: 'Missing Supabase configuration'
+      })
+    }
+
+    if (!serviceRoleKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Missing Supabase service role key'
       })
     }
 
@@ -56,10 +63,26 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Step 3: Check current usage and limits (simplified)
+    // Step 3: Validate apiary ownership if apiary_id is provided
     const serviceClient = createClient(supabaseUrl, serviceRoleKey)
     
-    // Get current hive count for user
+    if (body.apiary_id) {
+      const { data: apiary, error: apiaryError } = await serviceClient
+        .from('apiaries')
+        .select('id')
+        .eq('id', body.apiary_id)
+        .eq('user_id', user.id)
+        .single()
+
+      if (apiaryError || !apiary) {
+        throw createError({
+          statusCode: 403,
+          statusMessage: 'You can only assign hives to your own apiaries'
+        })
+      }
+    }
+
+    // Step 4: Check current usage and limits
     const { count: currentHives } = await serviceClient
       .from('hives')
       .select('id', { count: 'exact', head: true })
@@ -76,14 +99,13 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Step 4: Create new hive
+    // Step 5: Create new hive (updated for apiary structure)
     const newHive = {
       user_id: user.id,
       created_by: user.id,
       name: body.name.trim(),
       description: body.description?.trim() || null,
-      latitude: body.latitude ? parseFloat(body.latitude) : null,
-      longitude: body.longitude ? parseFloat(body.longitude) : null,
+      apiary_id: body.apiary_id || null, // Link to apiary instead of GPS coordinates
       installation_date: body.installation_date || new Date().toISOString().split('T')[0],
       is_active: body.is_active !== undefined ? body.is_active : true,
       created_at: new Date().toISOString(),
@@ -96,7 +118,10 @@ export default defineEventHandler(async (event) => {
     const { data, error } = await serviceClient
       .from('hives')
       .insert([newHive])
-      .select()
+      .select(`
+        *,
+        apiary:apiaries(*)
+      `)
       .single()
 
     if (error) {

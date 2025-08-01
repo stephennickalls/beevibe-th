@@ -1,4 +1,4 @@
-// server/api/hives/[id].put.js - Update a hive
+// server/api/hives/[id].put.js - Update a hive (properly updated for apiary structure)
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
@@ -8,12 +8,19 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const supabaseUrl = config.public?.supabaseUrl
     const anonKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NTY1MCwiZXhwIjoyMDUyODMxNjUwfQ.VVEw8Bob9AjV_WeBsVHLdNKMRUWq2QLeBHAG8o1is7s'
+    const serviceRoleKey = config.supabaseServiceRoleKey
     
     if (!supabaseUrl || !anonKey) {
       throw createError({
         statusCode: 500,
         statusMessage: 'Missing Supabase configuration'
+      })
+    }
+
+    if (!serviceRoleKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Missing Supabase service role key'
       })
     }
 
@@ -70,7 +77,7 @@ export default defineEventHandler(async (event) => {
     // Step 4: Verify hive exists and belongs to user
     const { data: existingHive, error: fetchError } = await serviceClient
       .from('hives')
-      .select('id, user_id, name')
+      .select('id, user_id, name, apiary_id')
       .eq('id', hiveId)
       .single()
 
@@ -89,26 +96,59 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Step 5: Prepare update data
+    // Step 5: Validate apiary ownership if apiary_id is being changed
+    if (body.apiary_id && body.apiary_id !== existingHive.apiary_id) {
+      const { data: apiary, error: apiaryError } = await serviceClient
+        .from('apiaries')
+        .select('id')
+        .eq('id', body.apiary_id)
+        .eq('user_id', user.id)
+        .single()
+
+      if (apiaryError || !apiary) {
+        throw createError({
+          statusCode: 403,
+          statusMessage: 'You can only assign hives to your own apiaries'
+        })
+      }
+    }
+
+    // Step 6: Prepare update data (NO GPS coordinates - only apiary relationship)
     const updateData = {
       name: body.name.trim(),
       description: body.description?.trim() || null,
-      latitude: body.latitude ? parseFloat(body.latitude) : null,
-      longitude: body.longitude ? parseFloat(body.longitude) : null,
+      apiary_id: body.apiary_id || null,
       installation_date: body.installation_date || null,
       is_active: body.is_active !== undefined ? body.is_active : true,
       updated_at: new Date().toISOString()
     }
 
+    // Remove undefined values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key]
+      }
+    })
+
     console.log('Update data:', updateData)
 
-    // Step 6: Update the hive
+    // Step 7: Update the hive and return with apiary data
     const { data, error } = await serviceClient
       .from('hives')
       .update(updateData)
       .eq('id', hiveId)
       .eq('user_id', user.id) // Double-check ownership
-      .select()
+      .select(`
+        *,
+        apiary:apiaries(
+          id,
+          name,
+          description,
+          latitude,
+          longitude,
+          address
+        )
+      `)
       .single()
 
     if (error) {

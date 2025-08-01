@@ -40,30 +40,43 @@
           <p class="text-xs text-gray-400 mt-1">Optional - describe the hive location, characteristics, etc.</p>
         </div>
 
-        <!-- Location -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-2">Latitude</label>
-            <input 
-              v-model="formData.latitude" 
-              type="number" 
-              step="any" 
-              placeholder="e.g., 40.7128"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-2">Longitude</label>
-            <input 
-              v-model="formData.longitude" 
-              type="number" 
-              step="any" 
-              placeholder="e.g., -74.0060"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-            />
+        <!-- Apiary Selection -->
+        <div>
+          <label class="block text-sm font-medium mb-2">Apiary</label>
+          <select 
+            v-model="formData.apiary_id" 
+            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+          >
+            <option value="">No apiary (unassigned)</option>
+            <option v-for="apiary in availableApiaries" :key="apiary.id" :value="apiary.id">
+              {{ apiary.name }}
+              <span v-if="apiary.address"> - {{ apiary.address }}</span>
+            </option>
+          </select>
+          <p class="text-xs text-gray-400 mt-1">
+            Apiaries provide location information for your hives. 
+            <button 
+              @click="showCreateApiary = true" 
+              class="text-blue-400 hover:text-blue-300 underline"
+              type="button"
+            >
+              Create new apiary
+            </button>
+          </p>
+        </div>
+
+        <!-- Current Location Info (if apiary is selected) -->
+        <div v-if="selectedApiaryInfo" class="bg-gray-900 rounded-lg p-3">
+          <h5 class="text-sm font-medium mb-2">Current Location</h5>
+          <div class="text-xs text-gray-400 space-y-1">
+            <p><span class="font-medium">Apiary:</span> {{ selectedApiaryInfo.name }}</p>
+            <p v-if="selectedApiaryInfo.address"><span class="font-medium">Address:</span> {{ selectedApiaryInfo.address }}</p>
+            <p v-if="selectedApiaryInfo.latitude && selectedApiaryInfo.longitude">
+              <span class="font-medium">Coordinates:</span> 
+              {{ parseFloat(selectedApiaryInfo.latitude).toFixed(4) }}, {{ parseFloat(selectedApiaryInfo.longitude).toFixed(4) }}
+            </p>
           </div>
         </div>
-        <p class="text-xs text-gray-400">Optional - GPS coordinates for hive location tracking</p>
 
         <!-- Installation Date -->
         <div>
@@ -142,11 +155,18 @@
         </div>
       </div>
     </div>
+
+    <!-- Create Apiary Modal -->
+    <CreateApiaryModal 
+      :show="showCreateApiary"
+      @close="showCreateApiary = false"
+      @created="handleApiaryCreated"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 
 // Props
 const props = defineProps({
@@ -171,19 +191,27 @@ const emit = defineEmits(['close', 'save', 'delete'])
 const formData = ref({
   name: '',
   description: '',
-  latitude: '',
-  longitude: '',
+  apiary_id: '',
   installation_date: '',
   is_active: true
 })
 
-// Validation errors
+// State
 const errors = ref({})
+const availableApiaries = ref([])
+const showCreateApiary = ref(false)
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
 // Computed properties
 const isValid = computed(() => {
   return formData.value.name.trim().length > 0 && 
          Object.keys(errors.value).length === 0
+})
+
+const selectedApiaryInfo = computed(() => {
+  if (!formData.value.apiary_id) return null
+  return availableApiaries.value.find(a => a.id == formData.value.apiary_id)
 })
 
 // Functions
@@ -197,6 +225,33 @@ const validateForm = () => {
   } else if (formData.value.name.trim().length > 100) {
     errors.value.name = 'Hive name must be less than 100 characters'
   }
+}
+
+const fetchApiaries = async () => {
+  if (!user.value) return
+  
+  try {
+    const token = await getAuthToken()
+    if (!token) return
+
+    const response = await $fetch('/api/apiaries', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.data) {
+      availableApiaries.value = response.data
+    }
+  } catch (err) {
+    console.error('Error fetching apiaries:', err)
+  }
+}
+
+const getAuthToken = async () => {
+  if (!user.value) return null
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.access_token
 }
 
 const copyToClipboard = async (text, type = 'text') => {
@@ -222,14 +277,19 @@ const handleSave = () => {
     const updateData = {
       name: formData.value.name.trim(),
       description: formData.value.description.trim() || null,
-      latitude: formData.value.latitude ? parseFloat(formData.value.latitude) : null,
-      longitude: formData.value.longitude ? parseFloat(formData.value.longitude) : null,
+      apiary_id: formData.value.apiary_id || null,
       installation_date: formData.value.installation_date || null,
       is_active: formData.value.is_active
     }
     
     emit('save', updateData)
   }
+}
+
+const handleApiaryCreated = (newApiary) => {
+  availableApiaries.value.push(newApiary)
+  formData.value.apiary_id = newApiary.id
+  showCreateApiary.value = false
 }
 
 // Watch for form changes
@@ -241,8 +301,7 @@ watch(() => props.hive, (newHive) => {
     formData.value = {
       name: newHive.name || '',
       description: newHive.description || '',
-      latitude: newHive.latitude || '',
-      longitude: newHive.longitude || '',
+      apiary_id: newHive.apiary_id || '',
       installation_date: newHive.installation_date || '',
       is_active: newHive.is_active !== undefined ? newHive.is_active : true
     }
@@ -254,6 +313,15 @@ watch(() => props.hive, (newHive) => {
 watch(() => props.show, (newShow) => {
   if (!newShow) {
     errors.value = {}
+  } else {
+    fetchApiaries()
+  }
+})
+
+// Lifecycle
+onMounted(() => {
+  if (props.show) {
+    fetchApiaries()
   }
 })
 </script>

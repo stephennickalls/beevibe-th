@@ -1,4 +1,4 @@
-// server/api/hives/[id].delete.js - Delete a hive
+// server/api/hives/[id].delete.js - Delete a hive (fixed)
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
@@ -8,12 +8,19 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const supabaseUrl = config.public?.supabaseUrl
     const anonKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvZHRjbHV4YmdvaGFjb3VudnlmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NTY1MCwiZXhwIjoyMDUyODMxNjUwfQ.VVEw8Bob9AjV_WeBsVHLdNKMRUWq2QLeBHAG8o1is7s'
+    const serviceRoleKey = config.supabaseServiceRoleKey
     
     if (!supabaseUrl || !anonKey) {
       throw createError({
         statusCode: 500,
         statusMessage: 'Missing Supabase configuration'
+      })
+    }
+
+    if (!serviceRoleKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Missing Supabase service role key'
       })
     }
 
@@ -79,7 +86,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Step 4: Handle related data
+    // Step 4: Handle related data cleanup
     console.log('Handling related data cleanup...')
 
     // First, unlink all sensors from this hive (don't delete them, just unlink)

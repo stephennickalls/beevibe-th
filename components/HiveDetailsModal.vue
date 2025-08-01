@@ -63,31 +63,46 @@
             </div>
           </div>
 
-          <!-- Location Info -->
+          <!-- Location Info - UPDATED FOR APIARY STRUCTURE -->
           <div class="space-y-4">
             <div class="bg-gray-900 rounded-lg p-4">
               <h4 class="text-lg font-medium mb-3">Location</h4>
               <div class="space-y-3">
-                <div v-if="hive?.latitude || hive?.longitude">
+                <!-- Apiary Information -->
+                <div v-if="hive?.apiary">
+                  <label class="block text-sm font-medium text-gray-400">Apiary</label>
+                  <p class="text-white">{{ hive.apiary.name }}</p>
+                  <p v-if="hive.apiary.address" class="text-sm text-gray-400 mt-1">{{ hive.apiary.address }}</p>
+                </div>
+                
+                <!-- GPS Coordinates from Apiary -->
+                <div v-if="hive?.apiary?.latitude || hive?.apiary?.longitude">
                   <label class="block text-sm font-medium text-gray-400">Coordinates</label>
                   <div class="space-y-1">
                     <p class="text-white text-sm">
-                      Lat: {{ hive?.latitude ? parseFloat(hive.latitude).toFixed(6) : 'Not set' }}
+                      Lat: {{ hive.apiary.latitude ? parseFloat(hive.apiary.latitude).toFixed(6) : 'Not set' }}
                     </p>
                     <p class="text-white text-sm">
-                      Lng: {{ hive?.longitude ? parseFloat(hive.longitude).toFixed(6) : 'Not set' }}
+                      Lng: {{ hive.apiary.longitude ? parseFloat(hive.apiary.longitude).toFixed(6) : 'Not set' }}
                     </p>
                   </div>
                   <button 
-                    v-if="hive?.latitude && hive?.longitude"
+                    v-if="hive.apiary.latitude && hive.apiary.longitude"
                     @click="openInMaps"
                     class="mt-2 text-xs text-blue-400 hover:text-blue-300 underline"
                   >
                     View on Maps
                   </button>
                 </div>
+                
+                <!-- No Location Data -->
+                <div v-else-if="!hive?.apiary">
+                  <p class="text-gray-400">Not assigned to an apiary</p>
+                  <p class="text-gray-500 text-sm mt-1">Assign this hive to an apiary to set location data</p>
+                </div>
+                
                 <div v-else>
-                  <p class="text-gray-400">No location data available</p>
+                  <p class="text-gray-400">Apiary location not set</p>
                 </div>
               </div>
             </div>
@@ -485,8 +500,9 @@ const copyToClipboard = async (text, type = 'text') => {
 }
 
 const openInMaps = () => {
-  if (props.hive?.latitude && props.hive?.longitude) {
-    const url = `https://www.google.com/maps?q=${props.hive.latitude},${props.hive.longitude}`
+  // UPDATED: Now gets coordinates from apiary instead of hive directly
+  if (props.hive?.apiary?.latitude && props.hive?.apiary?.longitude) {
+    const url = `https://www.google.com/maps?q=${props.hive.apiary.latitude},${props.hive.apiary.longitude}`
     window.open(url, '_blank')
   }
 }

@@ -1,4 +1,4 @@
-// server/api/hives/index.get.js - Simple hives only
+// server/api/hives/index.get.js - Updated for apiary structure
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
@@ -7,12 +7,19 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const supabaseUrl = config.public?.supabaseUrl
     const anonKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
-    const serviceRoleKey = config.supabaseServiceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey = config.supabaseServiceRoleKey
     
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    if (!supabaseUrl || !anonKey) {
       throw createError({
         statusCode: 500,
         statusMessage: 'Missing Supabase configuration'
+      })
+    }
+
+    if (!serviceRoleKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Missing Supabase service role key'
       })
     }
 
@@ -46,7 +53,7 @@ export default defineEventHandler(async (event) => {
 
     console.log(`Fetching hives for user: ${user.id}`)
 
-    // Step 3: Query database with service role - HIVES ONLY
+    // Step 3: Query database with service role - HIVES WITH APIARY DATA
     const serviceClient = createClient(supabaseUrl, serviceRoleKey)
     
     const { data: hives, error: queryError } = await serviceClient
@@ -56,14 +63,21 @@ export default defineEventHandler(async (event) => {
         uuid,
         name,
         description,
-        latitude,
-        longitude,
+        apiary_id,
         installation_date,
         is_active,
         created_at,
         updated_at,
         user_id,
-        created_by
+        created_by,
+        apiary:apiaries(
+          id,
+          name,
+          description,
+          latitude,
+          longitude,
+          address
+        )
       `)
       .eq('user_id', user.id)
       .eq('is_active', true)

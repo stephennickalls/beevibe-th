@@ -20,6 +20,24 @@ CREATE TABLE public.alerts (
   CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
   CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id)
 );
+CREATE TABLE public.apiaries (
+  id integer NOT NULL DEFAULT nextval('apiaries_id_seq'::regclass),
+  uuid uuid NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+  name character varying NOT NULL,
+  description text,
+  latitude numeric,
+  longitude numeric,
+  address text,
+  installation_date date DEFAULT CURRENT_DATE,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  user_id uuid NOT NULL,
+  created_by uuid,
+  CONSTRAINT apiaries_pkey PRIMARY KEY (id),
+  CONSTRAINT apiaries_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT apiaries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
 CREATE TABLE public.daily_summaries (
   id integer NOT NULL DEFAULT nextval('daily_summaries_id_seq'::regclass),
   hive_id integer NOT NULL,
@@ -49,15 +67,15 @@ CREATE TABLE public.hives (
   uuid uuid NOT NULL DEFAULT gen_random_uuid() UNIQUE,
   name character varying NOT NULL,
   description text,
-  latitude numeric,
-  longitude numeric,
   installation_date date DEFAULT CURRENT_DATE,
   is_active boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   user_id uuid,
   created_by uuid,
+  apiary_id integer,
   CONSTRAINT hives_pkey PRIMARY KEY (id),
+  CONSTRAINT hives_apiary_id_fkey FOREIGN KEY (apiary_id) REFERENCES public.apiaries(id),
   CONSTRAINT hives_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT hives_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
@@ -77,8 +95,8 @@ CREATE TABLE public.payments (
   metadata jsonb DEFAULT '{}'::jsonb,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT payments_pkey PRIMARY KEY (id),
-  CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT payments_subscription_id_fkey FOREIGN KEY (subscription_id) REFERENCES public.user_subscriptions(id)
+  CONSTRAINT payments_subscription_id_fkey FOREIGN KEY (subscription_id) REFERENCES public.user_subscriptions(id),
+  CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.queen_status (
   id integer NOT NULL DEFAULT nextval('queen_status_id_seq'::regclass),
@@ -181,6 +199,6 @@ CREATE TABLE public.user_subscriptions (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT user_subscriptions_pkey PRIMARY KEY (id),
-  CONSTRAINT user_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.subscription_plans(id),
-  CONSTRAINT user_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT user_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT user_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.subscription_plans(id)
 );
