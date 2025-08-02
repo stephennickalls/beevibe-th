@@ -1,7 +1,8 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
-    '@nuxtjs/supabase'
+    '@nuxtjs/supabase',
+    '@nuxtjs/leaflet'
   ],
   
   compatibilityDate: '2024-11-01',
