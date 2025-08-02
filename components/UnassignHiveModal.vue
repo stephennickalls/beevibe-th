@@ -75,10 +75,11 @@ const unassigningHiveId = ref(null)
 
 // Handle unassign hive
 const handleUnassign = (hive) => {
-  console.log('UnassignHiveModal: handleUnassign called for hive:', hive.name)
+  console.log('UnassignHiveModal: handleUnassign called for hive:', hive.name, 'ID:', hive.id)
   unassigningHiveId.value = hive.id
   
   // Emit the unassign event to parent
+  console.log('UnassignHiveModal: Emitting unassign event to parent...')
   emit('unassign', hive)
 }
 

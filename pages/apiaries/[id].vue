@@ -348,9 +348,8 @@ const formatDate = (dateString) => {
 const copyToClipboard = async (text, type = 'text') => {
   try {
     await navigator.clipboard.writeText(text)
-    console.log(`${type} copied to clipboard`)
   } catch (err) {
-    console.error('Failed to copy to clipboard:', err)
+    // Silently fail
   }
 }
 
@@ -377,7 +376,6 @@ const loadApiaryDetails = async () => {
     apiary.value = response.data
     
   } catch (err) {
-    console.error('Error loading apiary details:', err)
     error.value = err.message || 'Failed to load apiary details'
   }
 }
@@ -390,6 +388,56 @@ const handleApiaryUpdated = (updatedApiary) => {
 
 const handleApiaryDeleted = () => {
   navigateTo('/apiaries')
+}
+
+const handleUnassignHive = async (hive) => {
+  if (!hive || !hive.id) {
+    return
+  }
+  
+  try {
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication token not available')
+    }
+
+    const response = await $fetch(`/api/hives/${hive.id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        name: hive.name,
+        description: hive.description,
+        apiary_id: null, // Unassign from apiary
+        installation_date: hive.installation_date,
+        is_active: hive.is_active
+      }
+    })
+    
+    if (response?.error) {
+      throw new Error(response.error)
+    }
+    
+    if (response && (response.success || response.data)) {
+      // Refresh hive data to get updated assignments
+      await refreshHiveData()
+      
+      // Close the modal after successful unassignment
+      showUnassignHiveModal.value = false
+    } else {
+      throw new Error('Unexpected response from server')
+    }
+    
+  } catch (err) {
+    alert('Failed to unassign hive: ' + (err.message || 'Unknown error'))
+  } finally {
+    // Reset the modal loading state
+    if (unassignHiveModalRef.value?.resetLoadingState) {
+      unassignHiveModalRef.value.resetLoadingState()
+    }
+  }
 }
 
 const confirmDelete = async () => {
@@ -417,7 +465,6 @@ const confirmDelete = async () => {
     navigateTo('/apiaries')
     
   } catch (err) {
-    console.error('Error deleting apiary:', err)
     alert('Failed to delete apiary: ' + (err.message || 'Unknown error'))
   } finally {
     deleting.value = false
@@ -464,7 +511,6 @@ const handleAssignHive = async (hiveId) => {
     showAssignHiveModal.value = false
     
   } catch (err) {
-    console.error('Error assigning hive:', err)
     alert('Failed to assign hive: ' + (err.message || 'Unknown error'))
   } finally {
     assigningHive.value = false
@@ -510,28 +556,25 @@ const confirmRemoveHive = async (hive) => {
     showRemoveHiveModal.value = false
     
   } catch (err) {
-    console.error('Error removing hive:', err)
     alert('Failed to remove hive: ' + (err.message || 'Unknown error'))
   } finally {
     removingHive.value = false
   }
 }
 
-// Lifecycle - SIMPLIFIED to avoid loading issues
+// Lifecycle
 onMounted(async () => {
   try {
     await Promise.all([
       loadApiaryDetails(),
-      refreshHiveData(), // Load hive data with sensors
+      refreshHiveData(),
       loadSubscription?.() || Promise.resolve()
     ])
   } catch (err) {
-    console.error('Error during mount:', err)
     if (!error.value) {
       error.value = 'Failed to load page'
     }
   } finally {
-    // ALWAYS set loading to false
     loading.value = false
   }
 })
