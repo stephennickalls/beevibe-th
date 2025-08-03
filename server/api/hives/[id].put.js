@@ -51,16 +51,16 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Step 2: Get hive ID from route params
-    const hiveId = getRouterParam(event, 'id')
-    if (!hiveId) {
+    // Step 2: Get hive UUID from route params
+    const hiveUuid = getRouterParam(event, 'id')
+    if (!hiveUuid) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Hive ID is required'
+        statusMessage: 'Hive UUID is required'
       })
     }
 
-    console.log('Updating hive:', hiveId, 'for user:', user.id)
+    console.log('Updating hive:', hiveUuid, 'for user:', user.id)
 
     // Step 3: Get request body and validate
     const body = await readBody(event)
@@ -74,11 +74,11 @@ export default defineEventHandler(async (event) => {
 
     const serviceClient = createClient(supabaseUrl, serviceRoleKey)
 
-    // Step 4: Verify hive exists and belongs to user
+    // Step 4: Verify hive exists and belongs to user (FIXED: Query by uuid instead of id)
     const { data: existingHive, error: fetchError } = await serviceClient
       .from('hives')
-      .select('id, user_id, name, apiary_id')
-      .eq('id', hiveId)
+      .select('id, user_id, name, apiary_id, uuid')
+      .eq('uuid', hiveUuid)  // Changed from .eq('id', hiveId) to .eq('uuid', hiveUuid)
       .single()
 
     if (fetchError || !existingHive) {
@@ -132,11 +132,11 @@ export default defineEventHandler(async (event) => {
 
     console.log('Update data:', updateData)
 
-    // Step 7: Update the hive and return with apiary data
+    // Step 7: Update the hive and return with apiary data (FIXED: Update by uuid)
     const { data, error } = await serviceClient
       .from('hives')
       .update(updateData)
-      .eq('id', hiveId)
+      .eq('uuid', hiveUuid)  // Changed from .eq('id', hiveId) to .eq('uuid', hiveUuid)
       .eq('user_id', user.id) // Double-check ownership
       .select(`
         *,

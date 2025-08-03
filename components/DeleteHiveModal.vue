@@ -1,6 +1,9 @@
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-gray-800 rounded-lg w-full max-w-md">
+  <!-- Modal Backdrop with highest z-index -->
+  <div v-if="show" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+    <!-- Modal Container -->
+    <div class="bg-gray-800 rounded-lg w-full max-w-md shadow-2xl transform transition-all">
+      <!-- Modal Content -->
       <div class="p-6">
         
         <!-- Header -->
@@ -8,7 +11,7 @@
           <svg class="w-8 h-8 text-red-400" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
           </svg>
-          <h3 class="text-lg font-semibold">Delete Hive</h3>
+          <h3 class="text-lg font-semibold text-white">Delete Hive</h3>
         </div>
         
         <!-- Warning Content -->
@@ -32,20 +35,20 @@
               v-model="confirmationInput"
               type="text"
               placeholder="Type hive name to confirm"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 text-white placeholder-gray-400"
               :class="{ 'border-red-500': confirmationInput && !isConfirmationValid }"
             />
           </div>
           
-          <!-- Additional Warning for Hives with Sensors -->
-          <div v-if="hive?.sensors && hive.sensors.length > 0" class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">
+          <!-- Sensor Warning (only show if hive has sensors) -->
+          <div v-if="sensorCount > 0" class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-4">
             <div class="flex items-start space-x-2">
               <svg class="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
               </svg>
               <div>
                 <p class="text-yellow-200 text-sm font-medium">
-                  This hive has {{ hive.sensors.length }} sensor{{ hive.sensors.length > 1 ? 's' : '' }} attached
+                  This hive has {{ sensorCount }} sensor{{ sensorCount > 1 ? 's' : '' }} attached
                 </p>
                 <p class="text-yellow-300 text-xs mt-1">
                   Sensors will be unlinked but not deleted. You can reassign them to other hives later.
@@ -54,7 +57,7 @@
             </div>
           </div>
 
-          <!-- Historical Data Warning -->
+          <!-- Historical Data Warning (always show) -->
           <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-3 mb-4">
             <div class="flex items-start space-x-2">
               <svg class="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -76,7 +79,7 @@
         <div class="flex justify-end space-x-3">
           <button 
             @click="$emit('close')" 
-            class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer" 
+            class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer transition-colors" 
             :disabled="deleting"
           >
             Cancel
@@ -88,7 +91,7 @@
           >
             <svg v-if="deleting" class="animate-spin h-4 w-4" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <span>{{ deleting ? 'Deleting...' : 'Delete Hive' }}</span>
           </button>
@@ -137,10 +140,22 @@ const isConfirmationValid = computed(() => {
   return confirmationInput.value.trim() === confirmationText.value
 })
 
-// Get sensor count for display
+// Get sensor count for display - handle different possible data structures
 const sensorCount = computed(() => {
-  if (!props.hive?.sensors) return 0
-  return props.hive.sensors.length
+  if (!props.hive) return 0
+  
+  // Check if sensors is an array
+  if (Array.isArray(props.hive.sensors)) {
+    return props.hive.sensors.length
+  }
+  
+  // Check if there's a sensor_count property
+  if (typeof props.hive.sensor_count === 'number') {
+    return props.hive.sensor_count
+  }
+  
+  // Default to 0 if no sensors data
+  return 0
 })
 
 // Methods
@@ -155,6 +170,15 @@ watch(() => props.show, (newShow) => {
     confirmationInput.value = ''
   }
 })
+
+// Prevent body scroll when modal is open
+watch(() => props.show, (newShow) => {
+  if (newShow) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+})
 </script>
 
 <style scoped>
@@ -163,6 +187,12 @@ watch(() => props.show, (newShow) => {
   transition-property: color, background-color, border-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
 }
 
 /* Loading spinner animation */
@@ -174,14 +204,15 @@ watch(() => props.show, (newShow) => {
   animation: spin 1s linear infinite;
 }
 
-/* Focus ring for confirmation input */
-.focus\:ring-1:focus {
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+/* Focus styles */
+input:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 1px #ef4444;
 }
 
-.focus\:ring-red-500:focus {
-  --tw-ring-color: rgb(239 68 68);
+/* Ensure modal appears above everything */
+.z-\[100\] {
+  z-index: 100;
 }
 </style>

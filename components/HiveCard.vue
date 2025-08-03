@@ -1,6 +1,6 @@
 <template>
   <div 
-    @click="$emit('click', hive)"
+    @click="handleHiveClick"
     class="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700 hover:border-gray-600 relative"
   >
     <!-- Hive Header -->
@@ -40,7 +40,7 @@
           v-for="sensor in hive.sensors"
           :key="sensor.id"
           :sensor="sensor"
-          @click="$emit('sensor-click', sensor, hive)"
+          @click.stop="handleSensorClick(sensor)"
         />
       </div>
     </div>
@@ -58,15 +58,6 @@
       </div>
       <span class="text-xs text-blue-400">View Hive Details →</span>
     </div>
-
-    <!-- Battery Warning Indicator -->
-    <!-- <div v-if="hasLowBatterySensors" class="absolute top-2 right-2">
-      <div class="w-4 h-4 bg-yellow-600 rounded-full flex items-center justify-center" title="Low battery sensors">
-        <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
-        </svg>
-      </div>
-    </div> -->
   </div>
 </template>
 
@@ -85,6 +76,45 @@ const props = defineProps({
 // Events
 const emit = defineEmits(['click', 'sensor-click'])
 
+// Handle hive click - navigate directly to hive page using UUID
+const handleHiveClick = () => {
+  // Use UUID if available, otherwise fall back to numeric ID
+  const hiveIdentifier = props.hive.uuid || props.hive.id
+  
+  console.log('HiveCard: Navigating to hive:', {
+    name: props.hive.name,
+    id: props.hive.id,
+    uuid: props.hive.uuid,
+    using: hiveIdentifier
+  })
+  
+  // Navigate directly to the hive details page
+  navigateTo(`/hives/${hiveIdentifier}`)
+}
+
+// Handle sensor click (prevent event bubbling)
+const handleSensorClick = (sensor) => {
+  emit('sensor-click', sensor, props.hive)
+}
+
+// Utility function to format time
+const formatTime = (dateString) => {
+  if (!dateString) return 'Unknown'
+  
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInHours = Math.floor((now - date) / (1000 * 60 * 60))
+  
+  if (diffInHours < 1) {
+    return 'Just now'
+  } else if (diffInHours < 24) {
+    return `${diffInHours}h ago`
+  } else {
+    const diffInDays = Math.floor(diffInHours / 24)
+    return `${diffInDays}d ago`
+  }
+}
+
 // Computed properties
 const hiveStatus = computed(() => {
   const temp = props.hive.temperature
@@ -102,92 +132,4 @@ const hiveStatus = computed(() => {
     return { status: 'Healthy', color: 'bg-green-400', textColor: 'text-green-400' }
   }
 })
-
-// const hasLowBatterySensors = computed(() => {
-//   return props.hive.sensors?.some(sensor => sensor.battery_level < 20) || false
-// })
-
-// Helper functions
-const formatTime = (date) => {
-  const now = new Date()
-  const diff = now - new Date(date)
-  const minutes = Math.floor(diff / (1000 * 60))
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${days}d ago`
-}
 </script>
-
-<style scoped>
-/* Sensor cards overflow */
-.max-h-40::-webkit-scrollbar {
-  width: 4px;
-}
-
-.max-h-40::-webkit-scrollbar-track {
-  background: #374151;
-  border-radius: 2px;
-}
-
-.max-h-40::-webkit-scrollbar-thumb {
-  background: #6B7280;
-  border-radius: 2px;
-}
-
-.max-h-40::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-}
-
-/* Hover effects */
-.hover\:bg-gray-750:hover {
-  background-color: rgba(55, 65, 81, 0.9);
-}
-
-/* Smooth transitions */
-.transition-colors {
-  transition-property: color, background-color, border-color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-/* Status indicator colors */
-.bg-green-400 {
-  background-color: #4ade80;
-}
-
-.bg-yellow-400 {
-  background-color: #facc15;
-}
-
-.bg-red-400 {
-  background-color: #f87171;
-}
-
-.bg-gray-400 {
-  background-color: #9ca3af;
-}
-
-.text-green-400 {
-  color: #4ade80;
-}
-
-.text-yellow-400 {
-  color: #facc15;
-}
-
-.text-red-400 {
-  color: #f87171;
-}
-
-.text-gray-400 {
-  color: #9ca3af;
-}
-
-.text-blue-400 {
-  color: #60a5fa;
-}
-</style>

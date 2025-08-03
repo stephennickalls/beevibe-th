@@ -1,4 +1,4 @@
-// composables/useHiveData.js - Production version
+// composables/useHiveData.js - Fixed with enhanced debugging and user validation
 import { ref, computed, watch } from 'vue'
 
 // Global state (shared across all components using this composable)
@@ -18,18 +18,43 @@ export const useHiveData = () => {
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
 
-  // Helper function to get auth token
+  // Helper function to get auth token with validation
   const getAuthToken = async () => {
-    if (!user.value) return null
+    if (!user.value) {
+      console.error('useHiveData: No user available')
+      return null
+    }
     
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error) {
+        console.error('useHiveData: Session error:', error)
+        return null
+      }
+      
+      if (!session?.access_token) {
+        console.error('useHiveData: No access token in session')
+        return null
+      }
+      
+      console.log('useHiveData: Got auth token for user:', user.value.id)
+      return session.access_token
+      
+    } catch (err) {
+      console.error('useHiveData: Error getting auth token:', err)
+      return null
+    }
   }
 
   // Individual fetch functions
   const fetchHives = async () => {
-    if (!user.value) return { success: false, error: 'No user' }
+    if (!user.value) {
+      console.error('fetchHives: No user available')
+      return { success: false, error: 'No user' }
+    }
     
+    console.log('fetchHives: Starting fetch for user:', user.value.id)
     hivesLoading.value = true
     
     try {
@@ -38,24 +63,47 @@ export const useHiveData = () => {
         throw new Error('Authentication token not available')
       }
       
+      console.log('fetchHives: Making API request to /api/hives')
+      
       const response = await $fetch('/api/hives', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       
+      console.log('fetchHives: API response:', response)
+      
       if (response.error) {
         throw new Error(response.error)
       }
       
-      if (response.data) {
+      if (!response.success) {
+        throw new Error('API returned unsuccessful response')
+      }
+      
+      // Validate that all returned hives belong to current user
+      if (response.data && Array.isArray(response.data)) {
+        const currentUserId = user.value.id
+        console.log('fetchHives: Validating hive ownership for user:', currentUserId)
+        
+        const invalidHives = response.data.filter(hive => hive.user_id !== currentUserId)
+        if (invalidHives.length > 0) {
+          console.error('fetchHives: Found hives belonging to other users:', invalidHives)
+          throw new Error('Data integrity error: Received hives from other users')
+        }
+        
+        console.log(`fetchHives: ✅ All ${response.data.length} hives belong to current user`)
         hives.value = response.data
+      } else {
+        console.log('fetchHives: No hives data in response')
+        hives.value = []
       }
       
       return { success: true, data: response.data }
       
     } catch (err) {
       const errorMessage = err.message || 'Failed to load hives'
+      console.error('fetchHives: Error:', errorMessage)
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -64,8 +112,12 @@ export const useHiveData = () => {
   }
 
   const fetchSensors = async (hiveId = null) => {
-    if (!user.value) return { success: false, error: 'No user' }
+    if (!user.value) {
+      console.error('fetchSensors: No user available')
+      return { success: false, error: 'No user' }
+    }
     
+    console.log('fetchSensors: Starting fetch for user:', user.value.id, 'hiveId:', hiveId)
     sensorsLoading.value = true
     
     try {
@@ -75,21 +127,41 @@ export const useHiveData = () => {
       }
       
       const url = hiveId ? `/api/sensors?hive_id=${hiveId}` : '/api/sensors'
+      console.log('fetchSensors: Making API request to:', url)
+      
       const response = await $fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       
+      console.log('fetchSensors: API response:', response)
+      
       if (response.error) {
         throw new Error(response.error)
       }
       
-      if (response.data) {
+      if (!response.success) {
+        throw new Error('API returned unsuccessful response')
+      }
+      
+      // Validate that all returned sensors belong to current user
+      if (response.data && Array.isArray(response.data)) {
+        const currentUserId = user.value.id
+        const invalidSensors = response.data.filter(sensor => sensor.user_id !== currentUserId)
+        if (invalidSensors.length > 0) {
+          console.error('fetchSensors: Found sensors belonging to other users:', invalidSensors)
+          throw new Error('Data integrity error: Received sensors from other users')
+        }
+        
         if (hiveId) {
           sensors.value = sensors.value.filter(s => s.hive_id !== hiveId).concat(response.data)
         } else {
           sensors.value = response.data
+        }
+      } else {
+        if (!hiveId) {
+          sensors.value = []
         }
       }
       
@@ -97,6 +169,7 @@ export const useHiveData = () => {
       
     } catch (err) {
       const errorMessage = err.message || 'Failed to load sensors'
+      console.error('fetchSensors: Error:', errorMessage)
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -105,8 +178,12 @@ export const useHiveData = () => {
   }
 
   const fetchLatestReadings = async (hiveIds = null) => {
-    if (!user.value) return { success: false, error: 'No user' }
+    if (!user.value) {
+      console.error('fetchLatestReadings: No user available')
+      return { success: false, error: 'No user' }
+    }
     
+    console.log('fetchLatestReadings: Starting fetch for user:', user.value.id)
     readingsLoading.value = true
     
     try {
@@ -124,41 +201,55 @@ export const useHiveData = () => {
         url += `?hive_ids=${allHiveIds}`
       }
       
+      console.log('fetchLatestReadings: Making API request to:', url)
+      
       const response = await $fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       
+      console.log('fetchLatestReadings: API response:', response)
+      
       if (response.error) {
         throw new Error(response.error)
       }
       
+      if (!response.success) {
+        throw new Error('API returned unsuccessful response')
+      }
+      
       if (response.data) {
         latestReadings.value = response.data
+      } else {
+        latestReadings.value = []
       }
       
       return { success: true, data: response.data }
       
     } catch (err) {
       const errorMessage = err.message || 'Failed to load readings'
+      console.error('fetchLatestReadings: Error:', errorMessage)
       return { success: false, error: errorMessage }
     } finally {
       readingsLoading.value = false
     }
   }
 
-  // Combined data loading
+  // Combined data loading with better error handling
   const loadAllData = async (options = {}) => {
     if (!user.value) {
+      console.error('loadAllData: No user available')
       return { success: false, error: 'No user' }
     }
     
+    console.log('loadAllData: Starting data load for user:', user.value.id)
     loading.value = true
     error.value = null
     
     try {
       // Load hives first (required for everything else)
+      console.log('loadAllData: Step 1 - Loading hives')
       const hivesResult = await fetchHives()
       if (!hivesResult.success) {
         throw new Error(hivesResult.error)
@@ -166,24 +257,38 @@ export const useHiveData = () => {
       
       // Only proceed if we have hives or if explicitly requested
       if (hives.value.length === 0 && !options.loadEvenIfEmpty) {
+        console.log('loadAllData: No hives found, skipping sensors and readings')
         lastUpdate.value = new Date()
         return { success: true, message: 'No hives to load data for' }
       }
       
-      // Load sensors and readings in sequence
-      const sensorsResult = await fetchSensors()
-      const readingsResult = await fetchLatestReadings()
+      // Load sensors and readings in parallel
+      console.log('loadAllData: Step 2 - Loading sensors and readings')
+      const [sensorsResult, readingsResult] = await Promise.all([
+        fetchSensors(),
+        fetchLatestReadings()
+      ])
       
-      // Force reactivity update by triggering computed properties
+      // Check for errors but don't fail the whole operation
+      if (!sensorsResult.success) {
+        console.warn('loadAllData: Sensors failed to load:', sensorsResult.error)
+      }
+      if (!readingsResult.success) {
+        console.warn('loadAllData: Readings failed to load:', readingsResult.error)
+      }
+      
+      // Force reactivity update by accessing computed properties
       const hivesCount = hivesWithSensorData.value.length
       const sensorsCount = sensorsWithLatestReadings.value.length
       
-      lastUpdate.value = new Date()
+      console.log(`loadAllData: ✅ Complete. Hives: ${hivesCount}, Sensors: ${sensorsCount}`)
       
+      lastUpdate.value = new Date()
       return { success: true }
       
     } catch (err) {
       const errorMessage = err.message || 'Failed to load data'
+      console.error('loadAllData: Error:', errorMessage)
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -193,6 +298,7 @@ export const useHiveData = () => {
 
   // Refresh function (same as loadAllData but always runs)
   const refreshData = async () => {
+    console.log('refreshData: Forcing data refresh')
     return await loadAllData({ loadEvenIfEmpty: true })
   }
 
@@ -221,60 +327,25 @@ export const useHiveData = () => {
         }
       })
       
-      // Get latest readings for this hive (for hive-level metrics)
-      const hiveReadings = latestReadings.value.filter(r => r.hive_id === hive.id)
-      
-      // Group readings by sensor type for easy access
-      const readings = {}
-      hiveReadings.forEach(reading => {
-        readings[reading.sensor_type] = {
-          value: reading.value,
-          time: reading.reading_time,
-          unit: reading.unit,
-          signal_strength: reading.signal_strength
-        }
-      })
-      
-      // Calculate sensor statistics
-      const onlineSensorCount = hiveSensorsWithReadings.filter(s => s.is_online).length
-      const lowBatterySensorCount = hiveSensorsWithReadings.filter(s => s.battery_level < 20).length
-      
-      // Find most recent reading time
-      const readingTimes = Object.values(readings)
-        .map(r => r.time)
-        .filter(Boolean)
-        .map(t => new Date(t))
-      
-      const lastSensorReading = readingTimes.length > 0 
-        ? new Date(Math.max(...readingTimes))
-        : null
-      
+      // Add sensor data to hive
       return {
         ...hive,
-        // Use sensors with readings attached
         sensors: hiveSensorsWithReadings,
         sensor_count: hiveSensorsWithReadings.length,
-        online_sensor_count: onlineSensorCount,
-        low_battery_sensor_count: lowBatterySensorCount,
-        
-        // Latest readings by type
-        temperature: readings.temperature?.value || null,
-        temperature_time: readings.temperature?.time || null,
-        humidity: readings.humidity?.value || null,
-        humidity_time: readings.humidity?.time || null,
-        weight: readings.weight?.value || null,
-        weight_time: readings.weight?.time || null,
-        
-        // Combined metadata
-        last_sensor_reading: lastSensorReading,
-        readings_count: hiveReadings.length
+        online_sensor_count: hiveSensorsWithReadings.filter(s => s.is_online).length,
+        last_sensor_reading: hiveSensorsWithReadings.reduce((latest, sensor) => {
+          if (!sensor.latest_reading) return latest
+          if (!latest) return sensor.latest_reading.reading_time
+          return new Date(sensor.latest_reading.reading_time) > new Date(latest) 
+            ? sensor.latest_reading.reading_time 
+            : latest
+        }, null)
       }
     })
   })
 
   const sensorsWithLatestReadings = computed(() => {
     return sensors.value.map(sensor => {
-      // Find latest reading for this sensor
       const sensorReadings = latestReadings.value.filter(r => r.sensor_id === sensor.id)
       const latestReading = sensorReadings.length > 0 
         ? sensorReadings.reduce((latest, current) => 
@@ -310,10 +381,14 @@ export const useHiveData = () => {
 
   // Watch for user changes and auto-load data
   watch(user, async (newUser, oldUser) => {
+    console.log('useHiveData: User changed from', oldUser?.id, 'to', newUser?.id)
+    
     if (newUser?.id !== oldUser?.id) {
       if (newUser) {
+        console.log('useHiveData: Loading data for new user:', newUser.id)
         await loadAllData()
       } else {
+        console.log('useHiveData: User logged out, clearing data')
         // Clear data when user logs out
         hives.value = []
         sensors.value = []
@@ -335,6 +410,16 @@ export const useHiveData = () => {
 
   const getReadingsForHive = (hiveId) => {
     return latestReadings.value.filter(r => r.hive_id === hiveId)
+  }
+
+  // Helper to clear all data (useful for debugging)
+  const clearAllData = () => {
+    console.log('useHiveData: Manually clearing all data')
+    hives.value = []
+    sensors.value = []
+    latestReadings.value = []
+    error.value = null
+    lastUpdate.value = null
   }
 
   // Return the composable interface
@@ -375,6 +460,7 @@ export const useHiveData = () => {
     getHiveById,
     getSensorsForHive,
     getReadingsForHive,
+    clearAllData,
     
     // Helper to clear error
     clearError: () => { error.value = null }

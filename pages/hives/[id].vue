@@ -12,7 +12,7 @@
       <div v-if="loading" class="text-center py-12">
         <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-500" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
         <p class="text-gray-400">Loading hive details...</p>
       </div>
@@ -23,7 +23,7 @@
           <svg class="w-12 h-12 mx-auto mb-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
           </svg>
-          <h3 class="text-lg font-semibold mb-2">Hive Not Found</h3>
+          <h3 class="text-lg font-semibold mb-2">{{ errorTitle }}</h3>
           <p class="text-gray-300 mb-4">{{ error }}</p>
           <NuxtLink to="/dashboard-v2" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
             Back to Dashboard
@@ -67,63 +67,6 @@
           </div>
         </div>
 
-        <!-- Current Status Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Temperature Card -->
-          <div class="bg-gray-900 rounded-2xl p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-semibold flex items-center space-x-2">
-                <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
-                </svg>
-                <span>Temperature</span>
-              </h3>
-            </div>
-            <div class="text-3xl font-bold mb-2">
-              {{ hive.temperature ? `${hive.temperature.toFixed(1)}°C` : 'N/A' }}
-            </div>
-            <p class="text-sm text-gray-400">
-              {{ hive.temperature_time ? formatTime(hive.temperature_time) : 'No recent data' }}
-            </p>
-          </div>
-
-          <!-- Humidity Card -->
-          <div class="bg-gray-900 rounded-2xl p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-semibold flex items-center space-x-2">
-                <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
-                </svg>
-                <span>Humidity</span>
-              </h3>
-            </div>
-            <div class="text-3xl font-bold mb-2">
-              {{ hive.humidity ? `${hive.humidity.toFixed(1)}%` : 'N/A' }}
-            </div>
-            <p class="text-sm text-gray-400">
-              {{ hive.humidity_time ? formatTime(hive.humidity_time) : 'No recent data' }}
-            </p>
-          </div>
-
-          <!-- Weight Card -->
-          <div class="bg-gray-900 rounded-2xl p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-semibold flex items-center space-x-2">
-                <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 3a1 1 0 100 2h.01a1 1 0 100-2H10zm-4 1a1 1 0 011-1h.01a1 1 0 110 2H7a1 1 0 01-1-1z"/>
-                </svg>
-                <span>Weight</span>
-              </h3>
-            </div>
-            <div class="text-3xl font-bold mb-2">
-              {{ hive.weight ? `${(hive.weight / 1000).toFixed(1)}kg` : 'N/A' }}
-            </div>
-            <p class="text-sm text-gray-400">
-              {{ hive.weight_time ? formatTime(hive.weight_time) : 'No recent data' }}
-            </p>
-          </div>
-        </div>
-
         <!-- Hive Information and Sensors -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Hive Information -->
@@ -138,7 +81,7 @@
                 <span class="text-gray-400">Description:</span>
                 <span>{{ hive.description || 'Not set' }}</span>
               </div>
-              <!-- Added Hive UUID with hide/reveal functionality -->
+              <!-- Hive UUID with hide/reveal functionality -->
               <div class="flex justify-between items-center">
                 <span class="text-gray-400">Hive UUID:</span>
                 <div class="flex items-center space-x-2">
@@ -161,7 +104,7 @@
                   <button 
                     v-if="showHiveUuid && hive.uuid" 
                     @click="copyToClipboard(hive.uuid, 'Hive UUID')"
-                    class="text-gray-400 hover:text-white text-xs cersor-pointer"
+                    class="text-gray-400 hover:text-white text-xs cursor-pointer"
                     title="Copy UUID"
                   >
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -176,11 +119,9 @@
                 <span>{{ hive.installation_date || 'Not set' }}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-400">Location:</span>
+                <span class="text-gray-400">Apiary:</span>
                 <span>
-                  {{ hive.latitude && hive.longitude ? 
-                     `${hive.latitude.toFixed(4)}, ${hive.longitude.toFixed(4)}` : 
-                     'Not set' }}
+                  {{ hive.apiary?.name || 'No apiary assigned' }}
                 </span>
               </div>
               <div class="flex justify-between">
@@ -208,42 +149,35 @@
             <div class="space-y-3">
               <div v-if="sensors.length === 0" class="text-center py-8 text-gray-400">
                 <svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  <path fill-rule="evenodd" d="M5.05 3.636a1 1 0 010 1.414 7 7 0 000 9.9 1 1 0 11-1.414 1.414 9 9 0 010-12.728 1 1 0 011.414 0zm9.9 0a1 1 0 011.414 0 9 9 0 010 12.728 1 1 0 11-1.414-1.414 7 7 0 000-9.9 1 1 0 010-1.414zM7.879 6.464a1 1 0 010 1.414 3 3 0 000 4.243 1 1 0 11-1.415 1.414 5 5 0 010-7.07 1 1 0 011.415 0zm4.242 0a1 1 0 011.415 0 5 5 0 010 7.072a1 1 0 01-1.415-1.415 3 3 0 000-4.242 1 1 0 010-1.415zM10 8a2 2 0 100 4 2 2 0 000-4z"/>
                 </svg>
                 <p class="text-sm">No sensors configured</p>
               </div>
-              
-              <!-- Updated sensor cards with view details link and remove button -->
-              <div v-for="sensor in sensors" :key="sensor.id" 
-                  class="p-3 bg-gray-800 rounded-lg">
-                <div class="flex justify-between items-start">
-                  <div class="flex-1">
-                    <div class="flex items-center space-x-2 mb-1">
-                      <p class="font-medium">{{ sensor.name || `${sensor.sensor_type} Sensor` }}</p>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                      {{ sensor.sensor_type }} • {{ sensor.model || 'Unknown model' }}
-                    </p>
-                    <p class="text-xs text-gray-500">
-                      Battery: {{ sensor.battery_level || 'Unknown' }}% • 
-                      {{ sensor.is_online ? 'Online' : 'Offline' }}
-                    </p>
-                  </div>
-                  <div class="flex flex-col items-end space-y-2">
-                    <button 
-                      @click="openRemoveSensorModal(sensor)" 
-                      class="text-red-400 hover:text-red-300 text-xs cursor-pointer"
-                    >
-                      Remove
-                    </button>
-                    <button 
-                      @click="openSensorDetailModal(sensor)"
-                      class="text-blue-400 hover:text-blue-300 text-xs underline cursor-pointer"
-                      title="View sensor details"
-                    >
-                      Edit Details
-                    </button>
-                  </div>
+
+              <!-- Sensor cards with action section -->
+              <div v-for="sensor in sensorsWithActions" :key="sensor.id" class="bg-gray-800 rounded-lg overflow-hidden">
+                <!-- Sensor content area (clickable) -->
+                <div @click="openSensorDetailModal(sensor)" class="cursor-pointer">
+                  <SensorListItem
+                    :sensor="sensor"
+                    mode="page"
+                  />
+                </div>
+                
+                <!-- Action buttons section -->
+                <div class="flex justify-end space-x-2 px-4 pb-3 pt-2 border-t border-gray-700">
+                  <button 
+                    @click="openRemoveSensorModal(sensor)" 
+                    class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded hover:bg-red-900/20 transition-colors cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                  <button 
+                    @click="openSensorDetailModal(sensor)"
+                    class="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 rounded hover:bg-blue-900/20 transition-colors cursor-pointer"
+                  >
+                    Edit Details
+                  </button>
                 </div>
               </div>
             </div>
@@ -252,110 +186,22 @@
       </div>
 
       <!-- Edit Hive Modal -->
-      <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-800 rounded-lg w-full max-w-lg max-h-[90vh] overflow-hidden">
-          <div class="flex justify-between items-center p-6 border-b border-gray-700">
-            <h3 class="text-xl font-semibold">Edit Hive</h3>
-            <button @click="closeEditModal" class="text-gray-400 hover:text-white">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-              </svg>
-            </button>
-          </div>
-          
-          <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-            <div>
-              <label class="block text-sm font-medium mb-2">Hive Name</label>
-              <input v-model="editForm.name" type="text" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Description</label>
-              <textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 resize-none"></textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium mb-2">Latitude</label>
-                <input v-model="editForm.latitude" type="number" step="any" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-2">Longitude</label>
-                <input v-model="editForm.longitude" type="number" step="any" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" />
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Installation Date</label>
-              <input v-model="editForm.installation_date" type="date" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500" />
-            </div>
-            <div class="flex items-center space-x-2">
-              <input v-model="editForm.is_active" type="checkbox" id="is_active" class="rounded" />
-              <label for="is_active" class="text-sm">Active</label>
-            </div>
-          </div>
-          
-          <div class="flex justify-end space-x-3 p-6 border-t border-gray-700">
-            <button @click="closeEditModal" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer">Cancel</button>
-            <button @click="updateHive" :disabled="updating" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg cursor-pointer">
-              {{ updating ? 'Saving...' : 'Save Changes' }}
-            </button>
-          </div>
-        </div>
-      </div>
+      <HiveEditModal
+        :show="showEditModal"
+        :hive="hive"
+        :updating="updating"
+        @close="closeEditModal"
+        @save="handleUpdateHive"
+      />
 
-      <!-- Delete Confirmation Modal -->
-      <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-800 rounded-lg w-full max-w-md">
-          <div class="p-6">
-            <div class="flex items-center space-x-3 mb-4">
-              <svg class="w-8 h-8 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
-              </svg>
-              <h3 class="text-lg font-semibold">Delete Hive</h3>
-            </div>
-            
-            <div class="mb-6">
-              <p class="text-gray-300 mb-4">
-                Are you sure you want to delete "{{ hive.name || `Hive ${hive.id}` }}"?
-              </p>
-              <p class="text-gray-300 mb-4">
-                This action cannot be undone and will remove all associated sensor data and historical records.
-              </p>
-              
-              <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-4">
-                <p class="text-red-300 text-sm mb-2">
-                  To confirm deletion, please type the hive name below:
-                </p>
-                <p class="text-white font-mono text-sm mb-3 bg-gray-900 px-3 py-2 rounded">
-                  {{ hive.name || `Hive ${hive.id}` }}
-                </p>
-                <input
-                  v-model="deleteHiveForm.confirmationName"
-                  type="text"
-                  placeholder="Type hive name to confirm"
-                  class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                  :class="{ 'border-red-500': deleteHiveForm.confirmationName && !canDeleteHive }"
-                />
-              </div>
-            </div>
-            
-            <div class="flex justify-end space-x-3">
-              <button @click="closeDeleteModal" class="px-4 py-2 text-gray-400 hover:text-white cursor-pointer" :disabled="deleting">
-                Cancel
-              </button>
-              <button 
-                @click="deleteHive" 
-                :disabled="!canDeleteHive || deleting" 
-                class="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center space-x-2 cursor-pointer"
-              >
-                <svg v-if="deleting" class="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>{{ deleting ? 'Deleting...' : 'Delete Hive' }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Delete Hive Modal -->
+      <DeleteHiveModal
+        :show="showDeleteModal"
+        :hive="hive"
+        :deleting="deleting"
+        @close="closeDeleteModal"
+        @delete="deleteHive"
+      />
 
       <!-- Assign Sensor Modal -->
       <div v-if="showAddSensorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -373,7 +219,7 @@
           <div v-if="unassignedSensors.length === 0" class="p-6">
             <div class="text-center">
               <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path fill-rule="evenodd" d="M5.05 3.636a1 1 0 010 1.414 7 7 0 000 9.9 1 1 0 11-1.414 1.414 9 9 0 010-12.728 1 1 0 011.414 0zm9.9 0a1 1 0 011.414 0 9 9 0 010 12.728 1 1 0 11-1.414-1.414 7 7 0 000-9.9 1 1 0 010-1.414zM7.879 6.464a1 1 0 010 1.414 3 3 0 000 4.243 1 1 0 11-1.415 1.414 5 5 0 010-7.07 1 1 0 011.415 0zm4.242 0a1 1 0 011.415 0 5 5 0 010 7.072a1 1 0 01-1.415-1.415 3 3 0 000-4.242 1 1 0 010-1.415zM10 8a2 2 0 100 4 2 2 0 000-4z"/>
               </svg>
               <h4 class="text-lg font-semibold mb-2">No Unassigned Sensors</h4>
               <p class="text-gray-400 mb-4">
@@ -452,7 +298,7 @@
         </div>
       </div>
 
-      <!-- Remove Sensor from Hive Modal -->
+      <!-- Remove Sensor Modal -->
       <div v-if="showRemoveSensorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-lg w-full max-w-md">
           <div class="p-6">
@@ -499,7 +345,7 @@
               >
                 <svg v-if="removingSensor" class="animate-spin h-4 w-4" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 <span>{{ removingSensor ? 'Removing...' : 'Remove from Hive' }}</span>
               </button>
@@ -517,27 +363,35 @@
         @close="closeSensorDetailModal"
         @save="handleSensorSave"
       />
-
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import SensorEditModal from '~/components/SensorEditModal.vue'
+import SensorListItem from '~/components/SensorListItem.vue'
+import DeleteHiveModal from '~/components/DeleteHiveModal.vue'
+import HiveEditModal from '~/components/HiveEditModal.vue'
 
 // Route and navigation
 const route = useRoute()
-const hiveId = route.params.id
+const hiveIdentifier = route.params.id
+
+// Composables
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
 // Meta
 definePageMeta({
-  title: 'Hive Details - BeeVibe Dashboard'
+  title: 'Hive Details - BeeVibe Dashboard',
+  middleware: ['auth']
 })
 
 // Reactive data
 const loading = ref(true)
 const error = ref(null)
+const errorTitle = ref('Hive Not Found')
 const hive = ref({})
 const sensors = ref([])
 const activeAlerts = ref([])
@@ -548,7 +402,6 @@ const availableHives = ref([])
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const showAddSensorModal = ref(false)
-const showDeleteSensorModal = ref(false)
 const showSensorDetailModal = ref(false)
 const showRemoveSensorModal = ref(false)
 
@@ -556,7 +409,6 @@ const showRemoveSensorModal = ref(false)
 const updating = ref(false)
 const deleting = ref(false)
 const assigningSensor = ref(false)
-const deletingSensor = ref(false)
 const updatingSensor = ref(false)
 const removingSensor = ref(false)
 
@@ -564,31 +416,26 @@ const removingSensor = ref(false)
 const showHiveUuid = ref(false)
 
 // Form data
-const editForm = ref({
-  name: '',
-  description: '',
-  latitude: '',
-  longitude: '',
-  installation_date: '',
-  is_active: true
-})
-
-const deleteHiveForm = ref({
-  confirmationName: ''
-})
-
 const selectedSensorId = ref('')
 const selectedSensor = ref(null)
-
-const deleteSensorForm = ref({
-  sensorToDelete: null,
-  confirmationName: ''
-})
 
 const removeSensorForm = ref({
   sensorToRemove: null,
   confirmationName: ''
 })
+
+// Helper function to get auth token
+const getAuthToken = async () => {
+  if (!user.value) return null
+  
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token
+  } catch (err) {
+    console.error('Error getting auth token:', err)
+    return null
+  }
+}
 
 // Computed properties
 const unassignedSensors = computed(() => {
@@ -600,54 +447,48 @@ const selectedSensorDetails = computed(() => {
   return allSensors.value.find(sensor => sensor.id === selectedSensorId.value)
 })
 
-const canDeleteSensor = computed(() => {
-  if (!deleteSensorForm.value.sensorToDelete) return false
-  const sensorName = deleteSensorForm.value.sensorToDelete.name || `${deleteSensorForm.value.sensorToDelete.sensor_type} Sensor`
-  return deleteSensorForm.value.confirmationName.trim() === sensorName
-})
-
 const canRemoveSensor = computed(() => {
   if (!removeSensorForm.value.sensorToRemove) return false
   const sensorName = removeSensorForm.value.sensorToRemove.name || `${removeSensorForm.value.sensorToRemove.sensor_type} Sensor`
   return removeSensorForm.value.confirmationName.trim() === sensorName
 })
 
-const canDeleteHive = computed(() => {
-  const hiveName = hive.value.name || `Hive ${hive.value.id}`
-  return deleteHiveForm.value.confirmationName.trim() === hiveName
+// Computed property to ensure sensors have the required structure for SensorListItem
+const sensorsWithActions = computed(() => {
+  return sensors.value.map(sensor => ({
+    ...sensor,
+    // Ensure we have all required properties for SensorListItem
+    name: sensor.name || `${sensor.sensor_type} Sensor`,
+    sensor_type: sensor.sensor_type || 'unknown',
+    is_online: sensor.is_online !== undefined ? sensor.is_online : false,
+    battery_level: sensor.battery_level || null,
+    model: sensor.model || null,
+    // If we have recent sensor readings, structure them properly
+    latest_reading: sensor.latest_reading ? {
+      value: sensor.latest_reading.value,
+      unit: sensor.latest_reading.unit,
+      reading_time: sensor.latest_reading.reading_time || sensor.latest_reading.created_at,
+      signal_strength: sensor.latest_reading.signal_strength
+    } : null
+  }))
 })
 
 // Functions
 const getHiveStatus = (hive) => {
-  const temp = hive.temperature
-  const humidity = hive.humidity
-  
-  if (!temp || !humidity) {
-    return { status: 'No Data', color: 'bg-gray-400', textColor: 'text-gray-400' }
+  if (!hive.sensors || hive.sensors.length === 0) {
+    return { status: 'No Sensors', color: 'bg-gray-400', textColor: 'text-gray-400' }
   }
   
-  if (temp < 30 || temp > 40 || humidity < 45 || humidity > 75) {
-    return { status: 'Alert', color: 'bg-red-400', textColor: 'text-red-400' }
-  } else if (temp < 32 || temp > 38 || humidity < 50 || humidity > 70) {
-    return { status: 'Warning', color: 'bg-yellow-400', textColor: 'text-yellow-400' }
+  const onlineSensors = hive.sensors.filter(s => s.is_online).length
+  const totalSensors = hive.sensors.length
+  
+  if (onlineSensors === 0) {
+    return { status: 'Offline', color: 'bg-red-400', textColor: 'text-red-400' }
+  } else if (onlineSensors < totalSensors) {
+    return { status: 'Partial', color: 'bg-yellow-400', textColor: 'text-yellow-400' }
   } else {
-    return { status: 'Healthy', color: 'bg-green-400', textColor: 'text-green-400' }
+    return { status: 'Online', color: 'bg-green-400', textColor: 'text-green-400' }
   }
-}
-
-const formatTime = (date) => {
-  if (!date) return 'No recent data'
-  
-  const now = new Date()
-  const diff = now - new Date(date)
-  const minutes = Math.floor(diff / (1000 * 60))
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${days}d ago`
 }
 
 const formatDate = (date) => {
@@ -676,31 +517,91 @@ const copyToClipboard = async (text, type = 'text') => {
   }
 }
 
+// Validation function for UUID format
+const isValidUUID = (uuid) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(uuid)
+}
+
+// Main load function
+const loadHive = async () => {
+  if (!user.value) {
+    error.value = 'Authentication required. Please log in.'
+    errorTitle.value = 'Authentication Required'
+    return
+  }
+  
+  loading.value = true
+  error.value = null
+  
+  try {
+    console.log('Loading hive with identifier:', hiveIdentifier)
+    
+    // Validate UUID format
+    if (!isValidUUID(hiveIdentifier)) {
+      throw new Error('Invalid hive identifier. Only UUID format is supported.')
+    }
+    
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication token not available')
+    }
+
+    const response = await $fetch(`/api/hives/${hiveIdentifier}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.error) {
+      throw new Error(response.error)
+    }
+    
+    if (!response.data) {
+      throw new Error('Hive not found')
+    }
+    
+    hive.value = response.data
+    sensors.value = response.data.sensors || []
+    console.log('Hive loaded successfully:', hive.value.name)
+    
+  } catch (err) {
+    console.error('Error loading hive:', err)
+    
+    // Set user-friendly error message
+    if (err.statusCode === 404 || err.message === 'Hive not found') {
+      error.value = 'This hive could not be found. It may have been deleted or you may not have access to it.'
+      errorTitle.value = 'Hive Not Found'
+    } else if (err.statusCode === 401) {
+      error.value = 'Your session has expired. Please log in again.'
+      errorTitle.value = 'Authentication Required'
+    } else if (err.message.includes('Invalid hive identifier')) {
+      error.value = 'The hive link is invalid. Please check the URL or go back to your dashboard.'
+      errorTitle.value = 'Invalid Hive Link'
+    } else {
+      error.value = err.message || 'Failed to load hive details'
+      errorTitle.value = 'Error Loading Hive'
+    }
+    
+    // If hive not found, redirect to dashboard after a delay
+    if (err.statusCode === 404 || err.message === 'Hive not found') {
+      setTimeout(() => {
+        navigateTo('/dashboard-v2')
+      }, 3000)
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
 // Modal functions
 const closeEditModal = () => {
   showEditModal.value = false
-  editForm.value = {
-    name: hive.value.name || '',
-    description: hive.value.description || '',
-    latitude: hive.value.latitude || '',
-    longitude: hive.value.longitude || '',
-    installation_date: hive.value.installation_date || '',
-    is_active: hive.value.is_active
-  }
 }
 
 const closeAddSensorModal = () => {
   showAddSensorModal.value = false
   selectedSensorId.value = ''
-}
-
-const closeDeleteSensorModal = () => {
-  showDeleteSensorModal.value = false
-  deleteSensorForm.value = {
-    sensorToDelete: null,
-    confirmationName: ''
-  }
-  deletingSensor.value = false
 }
 
 const closeRemoveSensorModal = () => {
@@ -723,12 +624,6 @@ const openSensorDetailModal = (sensor) => {
   showSensorDetailModal.value = true
 }
 
-const openDeleteSensorModal = (sensor) => {
-  deleteSensorForm.value.sensorToDelete = sensor
-  deleteSensorForm.value.confirmationName = ''
-  showDeleteSensorModal.value = true
-}
-
 const openRemoveSensorModal = (sensor) => {
   removeSensorForm.value.sensorToRemove = sensor
   removeSensorForm.value.confirmationName = ''
@@ -737,55 +632,22 @@ const openRemoveSensorModal = (sensor) => {
 
 const closeDeleteModal = () => {
   showDeleteModal.value = false
-  deleteHiveForm.value.confirmationName = ''
 }
 
 // API functions
-const fetchHiveDetails = async () => {
-  try {
-    const { data, error: hiveError } = await $fetch(`/api/hives/${hiveId}`)
-    
-    if (hiveError) {
-      error.value = hiveError
-      return
-    }
-    
-    hive.value = data
-    
-    // Initialize edit form
-    editForm.value = {
-      name: data.name || '',
-      description: data.description || '',
-      latitude: data.latitude || '',
-      longitude: data.longitude || '',
-      installation_date: data.installation_date || '',
-      is_active: data.is_active
-    }
-    
-  } catch (err) {
-    error.value = 'Failed to load hive details'
-    console.error('Error fetching hive:', err)
-  }
-}
-
-const fetchSensors = async () => {
-  try {
-    const { data, error: sensorsError } = await $fetch(`/api/sensors?hive_id=${hiveId}`)
-    
-    if (!sensorsError && data) {
-      sensors.value = data
-    }
-  } catch (err) {
-    console.error('Error fetching sensors:', err)
-  }
-}
-
 const fetchAllSensors = async () => {
   try {
-    const { data, error: sensorsError } = await $fetch('/api/sensors')
+    const token = await getAuthToken()
+    if (!token) return
     
-    if (!sensorsError && data) {
-      allSensors.value = data
+    const response = await $fetch('/api/sensors', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.success && response.data) {
+      allSensors.value = response.data
     }
   } catch (err) {
     console.error('Error fetching all sensors:', err)
@@ -794,10 +656,17 @@ const fetchAllSensors = async () => {
 
 const fetchHives = async () => {
   try {
-    const { data, error: hivesError } = await $fetch('/api/hives')
+    const token = await getAuthToken()
+    if (!token) return
     
-    if (!hivesError && data) {
-      availableHives.value = data
+    const response = await $fetch('/api/hives', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.success && response.data) {
+      availableHives.value = response.data
     }
   } catch (err) {
     console.error('Error fetching hives:', err)
@@ -806,34 +675,49 @@ const fetchHives = async () => {
 
 const fetchAlerts = async () => {
   try {
-    const { data, error: alertsError } = await $fetch(`/api/alerts?hive_id=${hiveId}`)
+    const token = await getAuthToken()
+    if (!token) return
     
-    if (!alertsError && data) {
-      activeAlerts.value = data.filter(alert => !alert.resolved)
+    const response = await $fetch(`/api/alerts?hive_id=${hive.value.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.success && response.data) {
+      activeAlerts.value = response.data.filter(alert => !alert.resolved)
     }
   } catch (err) {
     console.error('Error fetching alerts:', err)
   }
 }
 
-const updateHive = async () => {
+// Handler for the HiveEditModal component
+const handleUpdateHive = async (formData) => {
   updating.value = true
   
   try {
-    const { data, error: updateError } = await $fetch(`/api/hives/${hiveId}`, {
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+    
+    const response = await $fetch(`/api/hives/${hiveIdentifier}`, {
       method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: {
-        name: editForm.value.name.trim(),
-        description: editForm.value.description.trim(),
-        latitude: editForm.value.latitude ? parseFloat(editForm.value.latitude) : null,
-        longitude: editForm.value.longitude ? parseFloat(editForm.value.longitude) : null,
-        installation_date: editForm.value.installation_date,
-        is_active: editForm.value.is_active
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        installation_date: formData.installation_date,
+        is_active: formData.is_active,
+        apiary_id: formData.apiary_id || null
       }
     })
     
-    if (!updateError && data) {
-      hive.value = { ...hive.value, ...data }
+    if (response.success && response.data) {
+      hive.value = { ...hive.value, ...response.data }
       showEditModal.value = false
     }
   } catch (err) {
@@ -844,15 +728,24 @@ const updateHive = async () => {
   }
 }
 
-const deleteHive = async () => {
+// Handler for the DeleteHiveModal component
+const deleteHive = async (hiveToDelete) => {
   deleting.value = true
   
   try {
-    const { error: deleteError } = await $fetch(`/api/hives/${hiveId}`, {
-      method: 'DELETE'
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+    
+    const response = await $fetch(`/api/hives/${hiveIdentifier}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
     
-    if (!deleteError) {
+    if (response.success) {
       navigateTo('/dashboard-v2')
     }
   } catch (err) {
@@ -869,16 +762,24 @@ const assignSensorToHive = async () => {
   assigningSensor.value = true
   
   try {
-    const { data, error: assignError } = await $fetch(`/api/sensors/${selectedSensorId.value}`, {
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+    
+    const response = await $fetch(`/api/sensors/${selectedSensorId.value}`, {
       method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: {
-        hive_id: hiveId
+        hive_id: hive.value.id
       }
     })
     
-    if (!assignError && data) {
+    if (response.success && response.data) {
       // Add the assigned sensor to the hive's sensor list
-      sensors.value.push(data)
+      sensors.value.push(response.data)
       closeAddSensorModal()
       
       // Refresh the all sensors list to update unassigned sensors
@@ -898,8 +799,16 @@ const handleSensorSave = async (formData) => {
   updatingSensor.value = true
   
   try {
-    const { data, error: updateError } = await $fetch(`/api/sensors/${selectedSensor.value.id}`, {
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+    
+    const response = await $fetch(`/api/sensors/${selectedSensor.value.id}`, {
       method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: {
         sensor_type: formData.sensor_type,
         name: formData.name.trim() || `${formData.sensor_type} Sensor`,
@@ -910,11 +819,11 @@ const handleSensorSave = async (formData) => {
       }
     })
     
-    if (!updateError && data) {
+    if (response.success && response.data) {
       // Update the sensor in the local array
       const sensorIndex = sensors.value.findIndex(s => s.id === selectedSensor.value.id)
       if (sensorIndex !== -1) {
-        sensors.value[sensorIndex] = { ...sensors.value[sensorIndex], ...data }
+        sensors.value[sensorIndex] = { ...sensors.value[sensorIndex], ...response.data }
       }
       closeSensorDetailModal()
     }
@@ -926,42 +835,28 @@ const handleSensorSave = async (formData) => {
   }
 }
 
-const removeSensor = async () => {
-  if (!canDeleteSensor.value || deletingSensor.value) return
-  
-  deletingSensor.value = true
-  
-  try {
-    const { error: removeError } = await $fetch(`/api/sensors/${deleteSensorForm.value.sensorToDelete.id}`, {
-      method: 'DELETE'
-    })
-    
-    if (!removeError) {
-      sensors.value = sensors.value.filter(s => s.id !== deleteSensorForm.value.sensorToDelete.id)
-      closeDeleteSensorModal()
-    }
-  } catch (err) {
-    console.error('Error removing sensor:', err)
-    alert('Failed to remove sensor. Please try again.')
-  } finally {
-    deletingSensor.value = false
-  }
-}
-
 const removeSensorFromHive = async () => {
   if (!canRemoveSensor.value || removingSensor.value) return
   
   removingSensor.value = true
   
   try {
-    const { error: removeError } = await $fetch(`/api/sensors/${removeSensorForm.value.sensorToRemove.id}`, {
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication required')
+    }
+    
+    const response = await $fetch(`/api/sensors/${removeSensorForm.value.sensorToRemove.id}`, {
       method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
       body: {
         hive_id: null // Set hive_id to null to unlink
       }
     })
     
-    if (!removeError) {
+    if (response.success) {
       sensors.value = sensors.value.filter(s => s.id !== removeSensorForm.value.sensorToRemove.id)
       closeRemoveSensorModal()
       
@@ -976,20 +871,40 @@ const removeSensorFromHive = async () => {
   }
 }
 
-// Lifecycle
+// Lifecycle and watchers
 onMounted(async () => {
-  loading.value = true
-  
-  await Promise.all([
-    fetchHiveDetails(),
-    fetchSensors(),
-    fetchAllSensors(),
-    fetchHives(),
-    fetchAlerts()
-  ])
-  
-  loading.value = false
+  if (user.value) {
+    await loadHive()
+    
+    // Only fetch additional data if hive loaded successfully
+    if (!error.value && hive.value.id) {
+      await Promise.all([
+        fetchAllSensors(),
+        fetchHives(),
+        fetchAlerts()
+      ])
+    }
+  }
 })
+
+// Watch for user changes
+watch(user, async (newUser) => {
+  if (newUser) {
+    await loadHive()
+    
+    // Only fetch additional data if hive loaded successfully
+    if (!error.value && hive.value.id) {
+      await Promise.all([
+        fetchAllSensors(),
+        fetchHives(),
+        fetchAlerts()
+      ])
+    }
+  } else {
+    // Redirect to login if no user
+    navigateTo('/login')
+  }
+}, { immediate: false })
 </script>
 
 <style scoped>
@@ -1012,4 +927,3 @@ onMounted(async () => {
   background: #9CA3AF;
 }
 </style>
-
