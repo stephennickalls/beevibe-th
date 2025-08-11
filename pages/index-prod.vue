@@ -1,4 +1,4 @@
-<!-- pages/index.vue - Updated with Register Interest Modal -->
+<!-- pages/index.vue - Fixed to use existing Card component -->
 <template>
   <div class="min-h-screen bg-gray-900 font-open-sans">
     <!-- Navigation -->
@@ -46,10 +46,10 @@
                 Sign In
               </NuxtLink>
               <NuxtLink 
-                to="/register-interest"
+                to="/auth/register" 
                 class="bg-brand-yellow hover:bg-brand-yellow-hover text-black font-semibold px-6 py-2 rounded-lg transition-colors"
               >
-                Register Interest
+                Get Started
               </NuxtLink>
             </div>
           </div>
@@ -81,10 +81,10 @@
                 Sign In
               </NuxtLink>
               <NuxtLink 
-                to="/register-interest"
+                to="/auth/register" 
                 class="inline-block bg-brand-yellow hover:bg-brand-yellow-hover text-black font-semibold px-6 py-2 rounded-lg transition-colors"
               >
-                Register Interest
+                Get Started
               </NuxtLink>
             </div>
           </div>
@@ -123,25 +123,25 @@
               
               <NuxtLink 
                 v-else
-                to="/register-interest"
+                to="/auth/register" 
                 class="inline-flex items-center justify-center px-8 py-4 bg-brand-yellow hover:bg-brand-yellow-hover text-black font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
-                Register Interest
+                Get Started Free
                 <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </NuxtLink>
               
-              <NuxtLink 
+              <button 
                 v-if="!user"
-                to="/register-interest"
+                @click="requestDemo"
                 class="inline-flex items-center justify-center px-8 py-4 border-2 border-gray-600 text-gray-300 hover:border-brand-yellow hover:text-brand-yellow font-semibold rounded-lg transition-all"
               >
                 Watch Demo
                 <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-              </NuxtLink>
+              </button>
             </div>
 
           </div>
@@ -168,9 +168,9 @@
                 </div>
                 
                 <div class="bg-gray-800 rounded-lg p-4">
-                  <div class="text-brand-yellow text-2xl font-bold">20.5 kg</div>
+                  <div class="text-brand-yellow text-2xl font-bold">45.2 lbs</div>
                   <div class="text-gray-400 text-sm">Total Weight</div>
-                  <div class="text-green-400 text-xs mt-1">↗ +0.95 kg this week</div>
+                  <div class="text-green-400 text-xs mt-1">↗ +2.1 lbs this week</div>
                 </div>
 
                 <!-- Simple chart representation -->
@@ -272,10 +272,10 @@
           </NuxtLink>
           <NuxtLink 
             v-else
-            to="/register-interest"
+            to="/auth/register" 
             class="inline-flex items-center justify-center px-8 py-4 bg-brand-yellow hover:bg-brand-yellow-hover text-black font-semibold rounded-lg transition-all transform hover:scale-105 shadow-lg"
           >
-            Register Interest
+            Start Free Today
           </NuxtLink>
           <NuxtLink 
             v-if="!user"
@@ -315,7 +315,7 @@
               <ul class="space-y-4 text-sm">
                 <li><a href="#features" class="text-gray-400 hover:text-brand-yellow transition-colors">Features</a></li>
                 <li><a href="#pricing" class="text-gray-400 hover:text-brand-yellow transition-colors">Pricing</a></li>
-                <li><NuxtLink to="/register-interest" class="text-gray-400 hover:text-brand-yellow transition-colors">Register Interest</NuxtLink></li>
+                <li><NuxtLink to="/auth/register" class="text-gray-400 hover:text-brand-yellow transition-colors">Sign Up</NuxtLink></li>
               </ul>
             </div>
             
@@ -383,6 +383,15 @@ const handleSignOut = async () => {
   }
 }
 
+// Handle demo request
+const requestDemo = () => {
+  // You could implement this as:
+  // 1. Modal with demo request form
+  // 2. Redirect to dedicated demo page
+  // 3. Email link for now
+  alert('Demo request: Please email us at demo@beevibe.com')
+}
+
 // Meta tags for SEO
 useHead({
   title: 'BeeVibe - Real-Time Beehive Monitoring',
@@ -391,6 +400,7 @@ useHead({
   ]
 })
 </script>
+
 
 <style scoped>
 /* Import Open Sans font */

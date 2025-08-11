@@ -159,13 +159,6 @@
               >
                 Clear Filters
               </button>
-              <button 
-                class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors cursor-pointer opacity-50"
-                disabled
-                title="Feature coming soon"
-              >
-                Save Preset
-              </button>
             </div>
             
             <button 

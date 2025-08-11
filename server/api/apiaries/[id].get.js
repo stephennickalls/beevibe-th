@@ -1,4 +1,4 @@
-// server/api/apiaries/[id].get.js - Fixed with same pattern as working index.get.js
+// server/api/apiaries/[id].get.js - Updated to handle UUID lookups like hives API
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
@@ -27,14 +27,14 @@ export default defineEventHandler(async (event) => {
       console.warn('No service role key - using anon client only')
     }
 
-    // Step 1: Get apiary ID from route
-    const apiaryId = getRouterParam(event, 'id')
-    console.log('Apiary ID:', apiaryId)
+    // Step 1: Get apiary identifier from route
+    const apiaryIdentifier = getRouterParam(event, 'id')
+    console.log('Apiary identifier:', apiaryIdentifier)
     
-    if (!apiaryId) {
+    if (!apiaryIdentifier) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Apiary ID is required'
+        statusMessage: 'Apiary identifier is required'
       })
     }
 
@@ -62,16 +62,28 @@ export default defineEventHandler(async (event) => {
     console.log('Authenticated user:', user.id)
 
     // Step 3: Use service role client if available, otherwise use auth client
-    const dbClient = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : authClient
+    const dbClient = serviceRoleKey ? 
+      createClient(supabaseUrl, serviceRoleKey) : authClient
 
-    // Step 4: Get basic apiary data first
-    console.log('Fetching apiary details for ID:', apiaryId)
-    const { data: apiary, error: apiaryError } = await dbClient
+    // Step 4: Determine if identifier is UUID or ID and query accordingly
+    let apiaryQuery = dbClient
       .from('apiaries')
       .select('*')
-      .eq('id', apiaryId)
       .eq('user_id', user.id)
       .single()
+
+    // Check if identifier looks like a UUID (contains hyphens) or is numeric
+    if (apiaryIdentifier.includes('-')) {
+      // Looks like UUID
+      console.log('Using UUID lookup for apiary:', apiaryIdentifier)
+      apiaryQuery = apiaryQuery.eq('uuid', apiaryIdentifier)
+    } else {
+      // Looks like numeric ID
+      console.log('Using ID lookup for apiary:', apiaryIdentifier)
+      apiaryQuery = apiaryQuery.eq('id', parseInt(apiaryIdentifier))
+    }
+
+    const { data: apiary, error: apiaryError } = await apiaryQuery
 
     if (apiaryError) {
       console.error('Error fetching apiary:', apiaryError)
@@ -94,6 +106,7 @@ export default defineEventHandler(async (event) => {
       .from('hives')
       .select(`
         id,
+        uuid,
         name,
         description,
         installation_date,
@@ -102,11 +115,11 @@ export default defineEventHandler(async (event) => {
         updated_at,
         sensor_count:sensors(count)
       `)
-      .eq('apiary_id', apiaryId)
+      .eq('apiary_id', apiary.id)
       .order('created_at', { ascending: false })
 
     if (hivesError) {
-      console.warn('Error fetching hives for apiary', apiaryId, ':', hivesError)
+      console.warn('Error fetching hives for apiary', apiary.id, ':', hivesError)
     }
 
     // Process sensor counts for each hive
@@ -130,7 +143,9 @@ export default defineEventHandler(async (event) => {
       data: apiaryWithHives,
       debug: {
         user_id: user.id,
-        apiary_id: apiaryId,
+        apiary_identifier: apiaryIdentifier,
+        apiary_id: apiary.id,
+        apiary_uuid: apiary.uuid,
         hive_count: processedHives.length,
         using_service_role: !!serviceRoleKey
       }

@@ -9,7 +9,7 @@
       <MobileNavigation />
 
       <!-- Header -->
-      <div class="mb-8">
+      <div class="mb-6">
         <div class="flex justify-between items-center">
           <div>
             <h1 class="text-3xl font-bold mb-2">Apiaries</h1>
@@ -27,54 +27,168 @@
         </div>
       </div>
 
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-gray-800 rounded-lg p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-400 text-sm">Total Apiaries</p>
-              <p class="text-2xl font-bold">{{ apiaries.length }}</p>
-            </div>
-            <div class="p-3 bg-blue-600 rounded-full">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
+      <!-- Search and Filter Controls -->
+      <div class="bg-gray-900 rounded-xl p-4 mb-6">
+        <!-- Filter Header -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-4">
+            <button 
+              @click="showFilters = !showFilters"
+              class="flex items-center space-x-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"/>
               </svg>
+              <span>{{ showFilters ? 'Hide' : 'Show' }} Filters</span>
+              <svg 
+                class="w-4 h-4 transition-transform duration-200" 
+                :class="{ 'rotate-180': showFilters }" 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+              </svg>
+            </button>
+            
+            <div class="text-sm text-gray-400">
+              {{ filteredApiaries.length }} of {{ apiariesWithFullHiveData.length }} apiaries
             </div>
+          </div>
+          
+          <div v-if="hasActiveFilters" class="flex items-center space-x-2">
+            <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+              {{ activeFilterCount }} filter{{ activeFilterCount > 1 ? 's' : '' }}
+            </span>
+            <button @click="clearFilters" class="text-xs text-blue-400 hover:text-blue-300 cursor-pointer">
+              Clear all
+            </button>
           </div>
         </div>
 
-        <div class="bg-gray-800 rounded-lg p-6">
-          <div class="flex items-center justify-between">
+        <!-- Expandable Filters -->
+        <div v-if="showFilters" class="border-t border-gray-700 pt-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <!-- Search -->
             <div>
-              <p class="text-gray-400 text-sm">Total Hives</p>
-              <p class="text-2xl font-bold">{{ totalHives }}</p>
+              <label class="block text-sm font-medium mb-1">Search</label>
+              <input 
+                v-model="searchQuery" 
+                type="text" 
+                placeholder="Name, description, or address..."
+                class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+              />
             </div>
-            <div class="p-3 bg-green-600 rounded-full">
-              <svg class="w-4 h-4" viewBox="0 0 55 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M51 31C53.2091 31 55 32.7909 55 35V52C55 54.2091 53.2091 56 51 56H4C1.79086 56 0 54.2091 0 52V35C3.54346e-07 32.7909 1.79086 31 4 31H51ZM19.5 36C18.6716 36 18 36.6716 18 37.5C18 38.3284 18.6716 39 19.5 39H37.5C38.3284 39 39 38.3284 39 37.5C39 36.6716 38.3284 36 37.5 36H19.5Z" fill="currentColor"/>
-                <path d="M51 13C53.2091 13 55 14.7909 55 17V24C55 26.2091 53.2091 28 51 28H4C1.79086 28 1.12747e-07 26.2091 0 24V17C0 14.7909 1.79086 13 4 13H51ZM18.5 17C17.6716 17 17 17.6716 17 18.5C17 19.3284 17.6716 20 18.5 20H36.5C37.3284 20 38 19.3284 38 18.5C38 17.6716 37.3284 17 36.5 17H18.5Z" fill="currentColor"/>
-                <path d="M51 0C53.2091 0 55 1.79086 55 4V6C55 8.20914 53.2091 10 51 10H4C1.79086 10 3.22133e-08 8.20914 0 6V4C0 1.79086 1.79086 0 4 0H51ZM18.5 3C17.6716 3 17 3.67157 17 4.5C17 5.32843 17.6716 6 18.5 6H36.5C37.3284 6 38 5.32843 38 4.5C38 3.67157 37.3284 3 36.5 3H18.5Z" fill="currentColor"/>
-              </svg>
+
+            <!-- Status Filter -->
+            <div>
+              <label class="block text-sm font-medium mb-1">Status</label>
+              <div class="relative">
+                <select v-model="filterStatus" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Hive Count Filter -->
+            <div>
+              <label class="block text-sm font-medium mb-1">Hive Count</label>
+              <div class="relative">
+                <select v-model="filterHiveCount" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Counts</option>
+                  <option value="empty">No Hives (0)</option>
+                  <option value="small">Small (1-3)</option>
+                  <option value="medium">Medium (4-10)</option>
+                  <option value="large">Large (11+)</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Alert Status Filter -->
+            <div>
+              <label class="block text-sm font-medium mb-1">Alert Status</label>
+              <div class="relative">
+                <select v-model="filterAlerts" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Alerts</option>
+                  <option value="none">No Alerts</option>
+                  <option value="warning">Has Warnings</option>
+                  <option value="critical">Has Critical</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Location Filter -->
+            <div>
+              <label class="block text-sm font-medium mb-1">Location Data</label>
+              <div class="relative">
+                <select v-model="filterLocation" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Locations</option>
+                  <option value="with-location">Has Location</option>
+                  <option value="without-location">No Location</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Installation Date Filter -->
+            <div>
+              <label class="block text-sm font-medium mb-1">Created</label>
+              <div class="relative">
+                <select v-model="filterInstallDate" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="">All Dates</option>
+                  <option value="week">Last Week</option>
+                  <option value="month">Last Month</option>
+                  <option value="quarter">Last 3 Months</option>
+                  <option value="year">Last Year</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Sort Order -->
+            <div>
+              <label class="block text-sm font-medium mb-1">Sort By</label>
+              <div class="relative">
+                <select v-model="sortBy" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none pr-8">
+                  <option value="name">Name (A-Z)</option>
+                  <option value="name-desc">Name (Z-A)</option>
+                  <option value="created">Newest First</option>
+                  <option value="created-desc">Oldest First</option>
+                  <option value="hive-count">Most Hives</option>
+                  <option value="hive-count-desc">Fewest Hives</option>
+                </select>
+                <svg class="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="bg-gray-800 rounded-lg p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-gray-400 text-sm">Active Apiaries</p>
-              <p class="text-2xl font-bold">{{ activeApiaries }}</p>
-            </div>
-            <div class="p-3 bg-yellow-600 rounded-full">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-              </svg>
-            </div>
+          <!-- Quick Clear Filters Button -->
+          <div v-if="hasActiveFilters" class="text-center">
+            <button 
+              @click="clearFilters" 
+              class="text-blue-400 hover:text-blue-300 text-sm cursor-pointer self-end"
+            >
+              Clear All Filters
+            </button>
           </div>
         </div>
       </div>
-
-
 
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center items-center py-12">
@@ -100,13 +214,27 @@
         </button>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="apiaries.length === 0" class="text-center py-12">
-        <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
-        </svg>
-        <h3 class="text-xl font-semibold mb-2">No Apiaries Yet</h3>
-        <p class="text-gray-400 mb-6">Create your first apiary to start organizing your hives by location</p>
+      <!-- No Apiaries/No Results State -->
+      <div v-else-if="filteredApiaries.length === 0" class="text-center py-12">
+        <div class="mb-4">
+          <svg class="w-16 h-16 mx-auto mb-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
+          </svg>
+          <div v-if="!hasActiveFilters" class="text-4xl mb-2">🏡</div>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">
+          {{ hasActiveFilters ? 'No Apiaries Match Your Filters' : 'No Apiaries Yet' }}
+        </h3>
+        <p class="text-gray-400 mb-6">
+          {{ hasActiveFilters ? 'Try adjusting your filters to find the apiaries you\'re looking for.' : 'Create your first apiary to start organizing your hives by location' }}
+        </p>
+        <button 
+          v-if="hasActiveFilters"
+          @click="clearFilters"
+          class="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors mr-4"
+        >
+          Clear Filters
+        </button>
         <button 
           @click="showCreateModal = true"
           class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
@@ -115,13 +243,16 @@
         </button>
       </div>
 
-      <!-- Apiaries Grid - Updated for flexible sizing -->
-      <div v-else class="space-y-6">
-        <ApiaryCard
-          v-for="apiary in apiariesWithFullHiveData"
+      <!-- Collapsible Apiaries List -->
+      <div v-else class="space-y-4">
+        <CollapsibleApiaryCard
+          v-for="apiary in filteredApiaries"
           :key="apiary.id"
           :apiary="apiary"
-          @click="viewApiaryDetails"
+          :alerts="getApiaryAlerts(apiary.id)"
+          :is-expanded="expandedApiaries[apiary.id] || false"
+          @toggle="toggleApiary(apiary.id)"
+          @apiary-click="viewApiaryDetails"
           @hive-click="viewHiveDetails"
         />
       </div>
@@ -138,7 +269,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import ApiaryCard from '~/components/ApiaryCard.vue'
+import CollapsibleApiaryCard from '~/components/CollapsibleApiaryCard.vue'
 
 // Meta
 definePageMeta({
@@ -151,9 +282,34 @@ const apiaries = ref([])
 const loading = ref(false)
 const error = ref(null)
 const showCreateModal = ref(false)
+const expandedApiaries = ref({}) // Track which apiaries are expanded
 
-// Mock alerts data for navigation
-const activeAlerts = ref([])
+// Filter State
+const showFilters = ref(false)
+const searchQuery = ref('')
+const filterStatus = ref('')
+const filterHiveCount = ref('')
+const filterAlerts = ref('')
+const filterLocation = ref('')
+const filterInstallDate = ref('')
+const sortBy = ref('name')
+
+// Alerts for navigation and apiary cards
+const alerts = ref([])
+const activeAlerts = computed(() => {
+  return alerts.value
+    .filter(alert => !alert.resolved)
+    .map(alert => ({
+      ...alert,
+      hiveName: hivesWithSensorData.value.find(h => h.id === alert.hive_id)?.name || 'Unknown Hive'
+    }))
+    .sort((a, b) => {
+      const severityOrder = { 'critical': 3, 'warning': 2, 'info': 1 }
+      const severityDiff = (severityOrder[b.severity] || 0) - (severityOrder[a.severity] || 0)
+      if (severityDiff !== 0) return severityDiff
+      return new Date(b.created_at) - new Date(a.created_at)
+    })
+})
 
 // Composables
 const supabase = useSupabaseClient()
@@ -167,40 +323,189 @@ const {
   loadAllData: loadHiveData
 } = useHiveData()
 
-// Computed
-const totalHives = computed(() => {
-  return apiaries.value.reduce((total, apiary) => total + (apiary.hive_count || 0), 0)
-})
-
-const activeApiaries = computed(() => {
-  return apiaries.value.filter(a => a.is_active).length
-})
-
 // Enhanced computed for apiaries with full hive data
 const apiariesWithFullHiveData = computed(() => {
   if (!apiaries.value.length || !hivesWithSensorData.value.length) {
-    return apiaries.value
+    return apiaries.value.map(apiary => ({
+      ...apiary,
+      hives: [],
+      hive_count: 0,
+      sensor_count: 0,
+      alert_count: 0
+    }))
   }
 
   return apiaries.value.map(apiary => {
     // Get hives for this apiary from the composable data
     const apiaryHives = hivesWithSensorData.value.filter(hive => hive.apiary_id === apiary.id)
     
+    // Calculate stats
+    const sensorCount = apiaryHives.reduce((total, hive) => total + (hive.sensors?.length || 0), 0)
+    const alertCount = activeAlerts.value.filter(alert => 
+      apiaryHives.some(hive => hive.id === alert.hive_id)
+    ).length
+
     return {
       ...apiary,
       hives: apiaryHives,
-      hive_count: apiaryHives.length
+      hive_count: apiaryHives.length,
+      sensor_count: sensorCount,
+      alert_count: alertCount
     }
   })
 })
 
-// Methods
+// Filter computed properties
+const filteredApiaries = computed(() => {
+  let filtered = apiariesWithFullHiveData.value
+
+  // Search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(apiary => 
+      (apiary.name && apiary.name.toLowerCase().includes(query)) ||
+      (apiary.description && apiary.description.toLowerCase().includes(query)) ||
+      (apiary.address && apiary.address.toLowerCase().includes(query))
+    )
+  }
+
+  // Status filter
+  if (filterStatus.value) {
+    const isActive = filterStatus.value === 'active'
+    filtered = filtered.filter(apiary => apiary.is_active === isActive)
+  }
+
+  // Hive count filter
+  if (filterHiveCount.value) {
+    filtered = filtered.filter(apiary => {
+      const hiveCount = apiary.hive_count || 0
+      switch (filterHiveCount.value) {
+        case 'empty': return hiveCount === 0
+        case 'small': return hiveCount >= 1 && hiveCount <= 3
+        case 'medium': return hiveCount >= 4 && hiveCount <= 10
+        case 'large': return hiveCount >= 11
+        default: return true
+      }
+    })
+  }
+
+  // Alert filter
+  if (filterAlerts.value) {
+    filtered = filtered.filter(apiary => {
+      const alerts = getApiaryAlerts(apiary.id)
+      const criticalAlerts = alerts.filter(alert => alert.severity === 'critical')
+      const warningAlerts = alerts.filter(alert => alert.severity === 'warning')
+      
+      switch (filterAlerts.value) {
+        case 'none': return alerts.length === 0
+        case 'warning': return warningAlerts.length > 0
+        case 'critical': return criticalAlerts.length > 0
+        default: return true
+      }
+    })
+  }
+
+  // Location filter
+  if (filterLocation.value) {
+    filtered = filtered.filter(apiary => {
+      const hasLocation = apiary.address || (apiary.latitude && apiary.longitude)
+      switch (filterLocation.value) {
+        case 'with-location': return !!hasLocation
+        case 'without-location': return !hasLocation
+        default: return true
+      }
+    })
+  }
+
+  // Installation date filter
+  if (filterInstallDate.value) {
+    const now = new Date()
+    filtered = filtered.filter(apiary => {
+      if (!apiary.installation_date) return false
+      const installDate = new Date(apiary.installation_date)
+      
+      switch (filterInstallDate.value) {
+        case 'week':
+          return (now - installDate) <= 7 * 24 * 60 * 60 * 1000
+        case 'month':
+          return (now - installDate) <= 30 * 24 * 60 * 60 * 1000
+        case 'quarter':
+          return (now - installDate) <= 90 * 24 * 60 * 60 * 1000
+        case 'year':
+          return (now - installDate) <= 365 * 24 * 60 * 60 * 1000
+        default:
+          return true
+      }
+    })
+  }
+
+  // Sort the results
+  if (sortBy.value) {
+    filtered.sort((a, b) => {
+      switch (sortBy.value) {
+        case 'name':
+          return (a.name || '').localeCompare(b.name || '')
+        case 'name-desc':
+          return (b.name || '').localeCompare(a.name || '')
+        case 'created':
+          return new Date(b.installation_date || b.created_at) - new Date(a.installation_date || a.created_at)
+        case 'created-desc':
+          return new Date(a.installation_date || a.created_at) - new Date(b.installation_date || b.created_at)
+        case 'hive-count':
+          return (b.hive_count || 0) - (a.hive_count || 0)
+        case 'hive-count-desc':
+          return (a.hive_count || 0) - (b.hive_count || 0)
+        default:
+          return 0
+      }
+    })
+  }
+
+  return filtered
+})
+
+const hasActiveFilters = computed(() => {
+  return !!(
+    searchQuery.value ||
+    filterStatus.value ||
+    filterHiveCount.value ||
+    filterAlerts.value ||
+    filterLocation.value ||
+    filterInstallDate.value
+  )
+})
+
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (searchQuery.value) count++
+  if (filterStatus.value) count++
+  if (filterHiveCount.value) count++
+  if (filterAlerts.value) count++
+  if (filterLocation.value) count++
+  if (filterInstallDate.value) count++
+  return count
+})
+
+// Helper function to get auth token
 const getAuthToken = async () => {
   if (!user.value) return null
   const { data: { session } } = await supabase.auth.getSession()
   return session?.access_token
 }
 
+// Helper functions for collapsible cards
+const toggleApiary = (apiaryId) => {
+  expandedApiaries.value[apiaryId] = !expandedApiaries.value[apiaryId]
+}
+
+const getApiaryAlerts = (apiaryId) => {
+  const apiaryHives = hivesWithSensorData.value.filter(hive => hive.apiary_id === apiaryId)
+  return activeAlerts.value.filter(alert => 
+    apiaryHives.some(hive => hive.id === alert.hive_id)
+  )
+}
+
+// Methods
 const loadApiaries = async () => {
   if (!user.value) {
     return
@@ -235,12 +540,42 @@ const loadApiaries = async () => {
   }
 }
 
-const viewApiaryDetails = (apiary) => {
-  // Navigate to apiary details page
-  navigateTo(`/apiaries/${apiary.id}`)
+const fetchAlerts = async () => {
+  if (!user.value) return
+  
+  try {
+    const token = await getAuthToken()
+    if (!token) return
+
+    const response = await $fetch('/api/alerts', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.error) {
+      throw new Error(response.error)
+    }
+    
+    if (response.data) {
+      alerts.value = response.data
+    }
+  } catch (err) {
+    console.error('Failed to fetch alerts:', err)
+  }
 }
 
-const viewHiveDetails = (hive, apiary) => {
+const viewApiaryDetails = (apiary) => {
+  // Always use UUID for navigation - this should always be available
+  if (!apiary.uuid) {
+    console.error('Apiary missing UUID:', apiary)
+    alert('Unable to view apiary details - missing identifier')
+    return
+  }
+  navigateTo(`/apiaries/${apiary.uuid}`)
+}
+
+const viewHiveDetails = (hive) => {
   // Navigate to hive details page
   navigateTo(`/hives/${hive.id}`)
 }
@@ -250,12 +585,24 @@ const handleApiaryCreated = (newApiary) => {
   showCreateModal.value = false
 }
 
+// Filter helper functions
+const clearFilters = () => {
+  searchQuery.value = ''
+  filterStatus.value = ''
+  filterHiveCount.value = ''
+  filterAlerts.value = ''
+  filterLocation.value = ''
+  filterInstallDate.value = ''
+  sortBy.value = 'name'
+}
+
 // Lifecycle
 onMounted(async () => {
-  // Load both apiaries and hive data
+  // Load apiaries, hive data, and alerts
   await Promise.all([
     loadApiaries(),
-    loadHiveData()
+    loadHiveData(),
+    fetchAlerts()
   ])
 })
 
@@ -264,10 +611,12 @@ watch(user, async (newUser) => {
   if (newUser) {
     await Promise.all([
       loadApiaries(),
-      loadHiveData()
+      loadHiveData(),
+      fetchAlerts()
     ])
   } else {
     apiaries.value = []
+    alerts.value = []
   }
 })
 </script>

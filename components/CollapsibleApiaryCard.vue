@@ -22,8 +22,13 @@
             <span v-if="hasAlerts" :class="getAlertTextColor()">
               • {{ alerts.length }} {{ alerts.length === 1 ? 'alert' : 'alerts' }}
             </span>
-            <span v-if="apiary.address" class="block text-xs mt-1 truncate">
+          </div>
+          <div class="text-xs text-gray-500 mt-1 flex items-center">
+            <span v-if="apiary.address" class="truncate mr-2">
               📍 {{ apiary.address }}
+            </span>
+            <span v-if="apiary.latitude && apiary.longitude" class="text-gray-400 flex-shrink-0">
+              {{ parseFloat(apiary.latitude).toFixed(4) }}, {{ parseFloat(apiary.longitude).toFixed(4) }}
             </span>
           </div>
         </div>
@@ -74,28 +79,9 @@
     <div :class="['accordion-content', isExpanded ? 'open' : '']">
       <div class="px-4 pb-4">
         
-        <!-- Location Info (when expanded) -->
-        <div v-if="apiary.address || (apiary.latitude && apiary.longitude)" class="mb-4 p-3 bg-gray-900 rounded-lg">
-          <h5 class="text-sm font-medium text-gray-300 mb-2">Location</h5>
-          <div v-if="apiary.address" class="flex items-center space-x-2 mb-1">
-            <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
-            </svg>
-            <span class="text-xs text-gray-300">{{ apiary.address }}</span>
-          </div>
-          <div v-if="apiary.latitude && apiary.longitude" class="flex items-center space-x-2">
-            <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
-            </svg>
-            <span class="text-xs text-gray-400">
-              {{ parseFloat(apiary.latitude).toFixed(4) }}, {{ parseFloat(apiary.longitude).toFixed(4) }}
-            </span>
-          </div>
-        </div>
-
         <!-- Alerts Section (when expanded) -->
         <div v-if="hasAlerts" class="mb-4 space-y-3">
-          <h5 class="text-sm font-medium text-gray-300 mb-3">Active Alerts</h5>
+          <h5 class="text-sm font-medium text-gray-300 mb-3 mt-3">Active Alerts</h5>
           
           <!-- Critical Alerts -->
           <div
