@@ -181,76 +181,14 @@
       </div>
     </div>
 
-    <!-- Create Hub Modal -->
-    <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-gray-800 rounded-lg max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-white">Add New Hub</h3>
-            <button @click="showCreateModal = false" class="text-gray-400 hover:text-white">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-              </svg>
-            </button>
-          </div>
-
-          <form @submit.prevent="createHub">
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Hub Name</label>
-                <input
-                  v-model="createForm.name"
-                  type="text"
-                  required
-                  placeholder="Enter hub name..."
-                  class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                <textarea
-                  v-model="createForm.description"
-                  rows="3"
-                  placeholder="Enter description (optional)..."
-                  class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                ></textarea>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Assign to Apiary</label>
-                <select
-                  v-model="createForm.apiary_id"
-                  class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option :value="null">Leave unassigned</option>
-                  <option v-for="apiary in apiaries" :key="apiary.id" :value="apiary.id">
-                    {{ apiary.name }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div class="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                @click="showCreateModal = false"
-                class="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="!createForm.name || createLoading"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-              >
-                {{ createLoading ? 'Creating...' : 'Create Hub' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    <!-- Add Hub Modal Component -->
+    <AddHubModal
+      :visible="showCreateModal"
+      :apiaries="apiaries"
+      @close="showCreateModal = false"
+      @success="handleHubCreated"
+      @error="handleHubCreateError"
+    />
   </div>
 </template>
 
@@ -258,13 +196,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useSupabaseClient, useSupabaseUser, navigateTo } from '#imports'
 import ApiaryHubCard from '~/components/ApiaryHubCard.vue'
+import AddHubModal from '~/components/AddHubModal.vue'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+// Helper function to get auth token (matching working pages pattern)
+const getAuthToken = async () => {
+  if (!user.value) return null
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.access_token
+}
+
 // Loading states
 const loading = ref(true)
-const createLoading = ref(false)
 
 // Data
 const hubs = ref([])
@@ -283,13 +228,6 @@ const filterStatus = ref('')
 const filterApiary = ref('')
 const filterFirmware = ref('')
 const sortBy = ref('')
-
-// Form data
-const createForm = ref({
-  name: '',
-  description: '',
-  apiary_id: null
-})
 
 // Computed properties
 const filteredHubs = computed(() => {
@@ -409,72 +347,46 @@ const navigateToHubDetails = (hub) => {
   navigateTo(`/hubs/${hub.id}`)
 }
 
+const handleHubCreated = (newHub) => {
+  console.log('Hub created successfully:', newHub)
+  // Refresh the data to show the new hub
+  loadData()
+}
+
+const handleHubCreateError = (error) => {
+  console.error('Failed to create hub:', error)
+  // Could show a toast notification here
+}
+
 // API actions
 const loadData = async () => {
   loading.value = true
   
   try {
-    // Load hubs with apiary info and sensor units count
-    const { data: hubData, error: hubError } = await supabase
-      .from('apiary_hubs')
-      .select(`
-        *,
-        apiary:apiaries(id, name),
-        sensor_units_count:sensor_units(count)
-      `)
-      .order('last_seen', { ascending: false, nullsFirst: false })
-    
-    if (hubError) throw hubError
-
-    // Load telemetry data
-    const hubIds = (hubData || []).map(h => h.id)
-    let telemetryData = []
-    
-    if (hubIds.length > 0) {
-      const { data: tData, error: tError } = await supabase
-        .from('device_telemetry')
-        .select('*')
-        .in('device_id', hubIds)
-        .eq('device_type', 'HUB')
-        .order('recorded_at', { ascending: false })
-      
-      if (!tError) telemetryData = tData || []
+    // Get auth token for API calls (matching working pages pattern)
+    const token = await getAuthToken()
+    if (!token) {
+      throw new Error('Authentication token not available')
     }
 
-    // Load pending commands count
-    let pendingCommandsData = []
-    if (hubIds.length > 0) {
-      const { data: cmdData, error: cmdError } = await supabase
-        .from('device_commands')
-        .select('device_id')
-        .in('device_id', hubIds)
-        .eq('device_type', 'HUB')
-        .in('status', ['queued', 'sent'])
-      
-      if (!cmdError) pendingCommandsData = cmdData || []
-    }
-
-    // Combine hub data with latest telemetry and pending commands
-    const telemetryByHub = {}
-    telemetryData.forEach(t => {
-      if (!telemetryByHub[t.device_id]) {
-        telemetryByHub[t.device_id] = t
+    // Load hubs via API endpoint with authorization header
+    const hubsResponse = await $fetch('/api/hubs', {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
     })
+    
+    if (hubsResponse.error) {
+      throw new Error(hubsResponse.error)
+    }
 
-    const pendingCommandsByHub = {}
-    pendingCommandsData.forEach(cmd => {
-      pendingCommandsByHub[cmd.device_id] = (pendingCommandsByHub[cmd.device_id] || 0) + 1
-    })
+    if (!hubsResponse.success) {
+      throw new Error(hubsResponse.message || 'Failed to load hubs')
+    }
 
-    hubs.value = (hubData || []).map(hub => ({
-      ...hub,
-      sensor_units_count: hub.sensor_units_count?.[0]?.count || 0,
-      telemetry: telemetryByHub[hub.id] || null,
-      pending_commands_count: pendingCommandsByHub[hub.id] || 0
-    }))
+    hubs.value = hubsResponse.data || []
 
-    // Load apiaries for dropdowns
+    // Load apiaries for dropdowns (keep direct call since it's simple)
     const { data: apiaryData, error: apiaryError } = await supabase
       .from('apiaries')
       .select('id, name')
@@ -485,35 +397,17 @@ const loadData = async () => {
 
   } catch (error) {
     console.error('Error loading data:', error)
+    // Could show a toast notification here
   } finally {
     loading.value = false
   }
 }
 
-const createHub = async () => {
-  createLoading.value = true
-  
-  try {
-    const { error } = await supabase
-      .from('apiary_hubs')
-      .insert({
-        name: createForm.value.name,
-        description: createForm.value.description || null,
-        apiary_id: createForm.value.apiary_id || null
-      })
-    
-    if (error) throw error
-    
-    showCreateModal.value = false
-    createForm.value = { name: '', description: '', apiary_id: null }
-    await loadData()
-    
-  } catch (error) {
-    console.error('Error creating hub:', error)
-  } finally {
-    createLoading.value = false
-  }
-}
+// Page metadata
+definePageMeta({
+  title: 'Apiary Hubs - BeeVibe Dashboard',
+  middleware: ['auth']
+})
 
 // Lifecycle
 onMounted(() => {
