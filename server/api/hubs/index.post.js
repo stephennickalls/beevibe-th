@@ -150,7 +150,9 @@ export default defineEventHandler(async (event) => {
     })
     console.log('=== CREATE HUB END ===')
     
+    // ✅ FIXED: Added success: true to match other API responses
     return { 
+      success: true,  // This line was missing!
       data,
       subscription_info: {
         plan: 'free',
