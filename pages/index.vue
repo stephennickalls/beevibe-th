@@ -18,7 +18,7 @@
           <div class="hidden md:flex items-center space-x-8">
             <a href="#features" class="text-gray-300 hover:text-brand-yellow transition-colors">Features</a>
             <a href="#pricing" class="text-gray-300 hover:text-brand-yellow transition-colors">Pricing</a>
-            <NuxtLink to="/about" class="text-gray-300 hover:text-brand-yellow transition-colors">About</NuxtLink>
+            <NuxtLink to="#about" class="text-gray-300 hover:text-brand-yellow transition-colors">About</NuxtLink>
           </div>
 
           <!-- Auth Section -->
