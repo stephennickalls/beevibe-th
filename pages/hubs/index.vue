@@ -209,8 +209,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useSupabaseClient, useSupabaseUser, navigateTo } from '#imports'
-import ApiaryHubCard from '~/components/ApiaryHubCard.vue'
-import AddHubModal from '~/components/AddHubModal.vue'
+import ApiaryHubCard from '~/components/apiary/ApiaryHubCard.vue'
+import AddHubModal from '~/components/hub/AddHubModal.vue'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()

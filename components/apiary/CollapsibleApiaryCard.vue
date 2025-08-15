@@ -190,7 +190,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import HiveCard from './HiveCard.vue'
+import HiveCard from '../hive/HiveCard.vue'
 
 // Props
 const props = defineProps({

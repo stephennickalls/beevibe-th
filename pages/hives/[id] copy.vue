@@ -369,10 +369,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import SensorEditModal from '~/components/SensorEditModal.vue'
-import SensorListItem from '~/components/SensorListItem.vue'
-import DeleteHiveModal from '~/components/DeleteHiveModal.vue'
-import HiveEditModal from '~/components/HiveEditModal.vue'
+import SensorEditModal from '~/components/sensor/SensorEditModal.vue'
+import SensorListItem from '~/components/sensor/SensorListItem.vue'
+import DeleteHiveModal from '~/components/hive/DeleteHiveModal.vue'
+import HiveEditModal from '~/components/hive/HiveEditModal.vue'
 
 // Route and navigation
 const route = useRoute()

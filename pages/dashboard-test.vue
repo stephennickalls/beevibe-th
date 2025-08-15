@@ -361,8 +361,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import AddHiveModal from '~/components/AddHiveModal.vue'
-import AddSensorModal from '~/components/AddSensorModal.vue'
+import AddHiveModal from '~/components/hive/AddHiveModal.vue'
+import AddSensorModal from '~/components/sensor/AddSensorModal.vue'
 
 // Meta with auth middleware
 definePageMeta({

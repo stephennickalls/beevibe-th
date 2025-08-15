@@ -161,8 +161,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import CollapsibleApiaryCard from '~/components/CollapsibleApiaryCard.vue'
-import CreateApiaryModal from '~/components/CreateApiaryModal.vue'
+import CollapsibleApiaryCard from '~/components/apiary/CollapsibleApiaryCard.vue'
+import CreateApiaryModal from '~/components/apiary/CreateApiaryModal.vue'
 import SystemStatusStrip from '~/components/SystemStatusStrip.vue'
 import LoadingState from '~/components/LoadingState.vue'
 

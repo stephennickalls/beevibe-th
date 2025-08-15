@@ -279,11 +279,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import SensorCard from '~/components/SensorCard.vue'
-import AddSensorModal from '~/components/AddSensorModal.vue'
-import SensorEditModal from '~/components/SensorEditModal.vue'
-import DeleteSensorModal from '~/components/DeleteSensorModal.vue'
-import SensorDetailsModal from '~/components/SensorDetailsModal.vue'
+import SensorCard from '~/components/sensor/SensorCard.vue'
+import AddSensorModal from '~/components/sensor/AddSensorModal.vue'
+import SensorEditModal from '~/components/sensor/SensorEditModal.vue'
+import DeleteSensorModal from '~/components/sensor/DeleteSensorModal.vue'
+import SensorDetailsModal from '~/components/sensor/SensorDetailsModal.vue'
 
 // Meta
 definePageMeta({

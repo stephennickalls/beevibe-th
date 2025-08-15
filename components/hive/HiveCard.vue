@@ -63,7 +63,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import SensorListItem from './SensorListItem.vue'
+import SensorListItem from '../sensor/SensorListItem.vue'
 
 // Props
 const props = defineProps({

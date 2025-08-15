@@ -274,11 +274,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import HiveCard from '~/components/HiveCard.vue'
-import AddHiveModal from '~/components/AddHiveModal.vue'
-import HiveEditModal from '~/components/HiveEditModal.vue'
-import DeleteHiveModal from '~/components/DeleteHiveModal.vue'
-import HiveDetailsModal from '~/components/HiveDetailsModal.vue'
+import HiveCard from '~/components/hive/HiveCard.vue'
+import AddHiveModal from '~/components/hive/AddHiveModal.vue'
+import HiveEditModal from '~/components/hive/HiveEditModal.vue'
+import DeleteHiveModal from '~/components/hive/DeleteHiveModal.vue'
+import HiveDetailsModal from '~/components/hive/HiveDetailsModal.vue'
 
 // Meta
 definePageMeta({
