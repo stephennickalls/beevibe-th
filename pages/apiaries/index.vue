@@ -27,6 +27,8 @@
         </div>
       </div>
 
+
+
       <!-- Search and Filter Controls -->
       <div class="bg-gray-900 rounded-xl p-4 mb-6">
         <!-- Filter Header -->
@@ -258,9 +260,13 @@
       </div>
     </div>
 
-    <!-- Create Apiary Modal -->
+    <!-- Create Apiary Modal with Subscription Protection -->
     <CreateApiaryModal 
       :show="showCreateModal"
+      :subscription="subscription"
+      :currentUsage="currentUsage"
+      :canAdd="canAddApiary"
+      :upgradeMessage="apiaryUpgradeMessage"
       @close="showCreateModal = false"
       @created="handleApiaryCreated"
     />
@@ -315,6 +321,9 @@ const activeAlerts = computed(() => {
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+// 🆕 ADD SUBSCRIPTION COMPOSABLE
+const { subscription, loadSubscription, getCurrentUsage } = useSubscription()
+
 // Use the centralized hive data composable
 const {
   hivesWithSensorData,
@@ -322,6 +331,44 @@ const {
   error: hivesError,
   loadAllData: loadHiveData
 } = useHiveData()
+
+// 🆕 SUBSCRIPTION COMPUTED PROPERTIES
+const currentUsage = ref({
+  apiaries: 0,
+  hives: 0,
+  hubs: 0
+})
+
+const canAddApiary = computed(() => {
+  if (!subscription.value) return false
+  const maxApiaries = subscription.value.limits.max_apiaries
+  return maxApiaries === -1 || currentUsage.value.apiaries < maxApiaries
+})
+
+const apiaryUsagePercent = computed(() => {
+  if (!subscription.value || subscription.value.limits.max_apiaries === -1) return 0
+  return (currentUsage.value.apiaries / subscription.value.limits.max_apiaries) * 100
+})
+
+const isNearApiaryLimit = computed(() => apiaryUsagePercent.value >= 80 && apiaryUsagePercent.value < 100)
+const isAtApiaryLimit = computed(() => apiaryUsagePercent.value >= 100)
+
+const apiaryUpgradeMessage = computed(() => {
+  if (!subscription.value) return 'Please upgrade to create more apiaries.'
+  const plan = subscription.value.plan
+  const limit = subscription.value.limits.max_apiaries
+  
+  if (plan === 'free') {
+    return `You've reached the apiary limit for your Free plan (${limit} apiary). Upgrade to Basic ($9.95/month) to get 2 apiaries.`
+  } else if (plan === 'basic') {
+    return `You've reached the apiary limit for your Basic plan (${limit} apiaries). Upgrade to Pro ($19.95/month) to get 5 apiaries.`
+  } else if (plan === 'pro') {
+    return `You've reached the apiary limit for your Pro plan (${limit} apiaries). Contact sales for Enterprise with unlimited apiaries.`
+  }
+  return `You've reached your apiary limit (${limit}). Please upgrade your plan.`
+})
+
+// 🎨 SUBSCRIPTION STYLING (kept for modal usage)
 
 // Enhanced computed for apiaries with full hive data
 const apiariesWithFullHiveData = computed(() => {
@@ -505,6 +552,11 @@ const getApiaryAlerts = (apiaryId) => {
   )
 }
 
+// 🆕 SIMPLE ADD APIARY HANDLER (no restriction check - handled in modal)
+const handleAddApiary = () => {
+  showCreateModal.value = true
+}
+
 // Methods
 const loadApiaries = async () => {
   if (!user.value) {
@@ -565,6 +617,20 @@ const fetchAlerts = async () => {
   }
 }
 
+// 🆕 UPDATE CURRENT USAGE
+const updateCurrentUsage = async () => {
+  try {
+    const usage = await getCurrentUsage()
+    currentUsage.value = {
+      apiaries: usage.apiaries || 0,
+      hives: usage.hives || 0,
+      hubs: usage.hubs || 0
+    }
+  } catch (err) {
+    console.error('Error updating current usage:', err)
+  }
+}
+
 const viewApiaryDetails = (apiary) => {
   // Always use UUID for navigation - this should always be available
   if (!apiary.uuid) {
@@ -580,9 +646,12 @@ const viewHiveDetails = (hive) => {
   navigateTo(`/hives/${hive.id}`)
 }
 
-const handleApiaryCreated = (newApiary) => {
+const handleApiaryCreated = async (newApiary) => {
   apiaries.value.push(newApiary)
   showCreateModal.value = false
+  
+  // Update usage after creating apiary
+  await updateCurrentUsage()
 }
 
 // Filter helper functions
@@ -598,25 +667,32 @@ const clearFilters = () => {
 
 // Lifecycle
 onMounted(async () => {
-  // Load apiaries, hive data, and alerts
+  // Load subscription, apiaries, hive data, and alerts
   await Promise.all([
+    loadSubscription(),
     loadApiaries(),
     loadHiveData(),
     fetchAlerts()
   ])
+  
+  // Update current usage after loading data
+  await updateCurrentUsage()
 })
 
 // Watch for user changes
 watch(user, async (newUser) => {
   if (newUser) {
     await Promise.all([
+      loadSubscription(),
       loadApiaries(),
       loadHiveData(),
       fetchAlerts()
     ])
+    await updateCurrentUsage()
   } else {
     apiaries.value = []
     alerts.value = []
+    currentUsage.value = { apiaries: 0, hives: 0, hubs: 0 }
   }
 })
 </script>

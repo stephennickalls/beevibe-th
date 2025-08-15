@@ -1,4 +1,4 @@
-// server/utils/subscription-simple.js - Simplified version to avoid import issues
+// UPDATED server/utils/subscription-simple.js - Fixed for 1 sensor unit per hive
 import { createClient } from '@supabase/supabase-js'
 
 export const checkUserSubscriptionSimple = async (userId) => {
@@ -26,16 +26,18 @@ export const checkUserSubscriptionSimple = async (userId) => {
       .single()
 
     if (error || !data) {
-      // Default to free plan
       return {
         hasActiveSubscription: false,
         plan: 'free',
         planDisplayName: 'Free',
         features: {},
         limits: { 
-          max_hives: 10, 
-          max_sensors_per_hive: 10, 
-          max_sensors_total: 30 
+          max_hives: 1, 
+          max_sensors_per_hive: 3, 
+          max_sensors_total: 3,
+          max_apiaries: 1,
+          max_hubs: 1
+          // max_sensor_units removed - it's 1:1 with hives
         }
       }
     }
@@ -56,9 +58,11 @@ export const checkUserSubscriptionSimple = async (userId) => {
       planDisplayName: 'Free',
       features: {},
       limits: { 
-        max_hives: 10, 
-        max_sensors_per_hive: 10, 
-        max_sensors_total: 30 
+        max_hives: 1, 
+        max_sensors_per_hive: 3, 
+        max_sensors_total: 3,
+        max_apiaries: 1,
+        max_hubs: 1
       }
     }
   }
@@ -82,15 +86,21 @@ export const checkSubscriptionLimitsSimple = async (userId, action, data = {}) =
   }
 
   try {
-    // Get current usage
-    const [hivesResult, sensorsResult] = await Promise.all([
+    // Get current usage for all resource types
+    const [hivesResult, sensorsResult, apiariesResult, hubsResult, sensorUnitsResult] = await Promise.all([
       client.from('hives').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_active', true),
-      client.from('sensors').select('id', { count: 'exact', head: true }).eq('user_id', userId)
+      client.from('sensors').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+      client.from('apiaries').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_active', true),
+      client.from('apiary_hubs').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+      client.from('sensor_units').select('id', { count: 'exact', head: true }).eq('user_id', userId)
     ])
 
     results.currentUsage = {
       hives: hivesResult.count || 0,
-      sensors: sensorsResult.count || 0
+      sensors: sensorsResult.count || 0,
+      apiaries: apiariesResult.count || 0,
+      hubs: hubsResult.count || 0,
+      sensor_units: sensorUnitsResult.count || 0
     }
 
     // Check limits based on action
@@ -128,6 +138,61 @@ export const checkSubscriptionLimitsSimple = async (userId, action, data = {}) =
             } else {
               results.allowed = true
             }
+          } else {
+            results.allowed = true
+          }
+        }
+        break
+
+      case 'create_apiary':
+        const maxApiaries = subscriptionInfo.limits.max_apiaries
+        if (maxApiaries === -1) {
+          results.allowed = true
+        } else if (results.currentUsage.apiaries >= maxApiaries) {
+          results.allowed = false
+          results.reason = `Apiary limit reached. Your ${subscriptionInfo.planDisplayName} plan allows ${maxApiaries} apiar${maxApiaries === 1 ? 'y' : 'ies'}.`
+        } else {
+          results.allowed = true
+        }
+        break
+
+      case 'create_hub':
+        const maxHubs = subscriptionInfo.limits.max_hubs
+        if (maxHubs === -1) {
+          results.allowed = true
+        } else if (results.currentUsage.hubs >= maxHubs) {
+          results.allowed = false
+          results.reason = `Hub limit reached. Your ${subscriptionInfo.planDisplayName} plan allows ${maxHubs} hub${maxHubs === 1 ? '' : 's'}.`
+        } else {
+          results.allowed = true
+        }
+        break
+
+      case 'create_sensor_unit':
+        // For sensor units, check if the target hive already has one
+        if (!data.hive_id) {
+          results.allowed = false
+          results.reason = 'Sensor units must be assigned to a hive'
+          break
+        }
+
+        // Check if this hive already has a sensor unit (1:1 constraint)
+        const { count: existingSensorUnits } = await client
+          .from('sensor_units')
+          .select('id', { count: 'exact', head: true })
+          .eq('hive_id', data.hive_id)
+
+        if (existingSensorUnits > 0) {
+          results.allowed = false
+          results.reason = 'This hive already has a sensor unit. Each hive can only have one sensor unit.'
+        } else {
+          // Also check overall hive limits (since sensor units are 1:1 with hives)
+          const maxHives = subscriptionInfo.limits.max_hives
+          if (maxHives === -1) {
+            results.allowed = true
+          } else if (results.currentUsage.hives >= maxHives) {
+            results.allowed = false
+            results.reason = `Cannot create sensor unit: hive limit of ${maxHives} reached.`
           } else {
             results.allowed = true
           }
