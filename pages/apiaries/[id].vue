@@ -43,7 +43,6 @@
           :weather-text="'22°C, Sunny'"
           @refresh="refreshData"
           @edit-apiary="showEditApiaryModal = true"
-          @alert-settings="showAlertSettingsModal = true"
           @delete-apiary="showDeleteConfirmModal = true"
         />
 
@@ -79,45 +78,14 @@
         <div class="space-y-6">
           <!-- Hives Overview Tab -->
           <div v-if="activeTab === 'hives'">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-semibold">Hive Management</h2>
-              <div class="flex gap-2">
-                <button 
-                  @click="showAddHiveModal = true"
-                  class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
-                  </svg>
-                  Add Hive
-                </button>
-              </div>
-            </div>
-
-            <!-- Hives Grid -->
-            <div v-if="apiaryHives.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              <HiveCard
-                v-for="hive in apiaryHives"
-                :key="hive.id"
-                :hive="hive"
-                @click="navigateToHiveDetails"
-              />
-            </div>
-
-            <!-- Empty State -->
-            <div v-else class="text-center py-12 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700">
-              <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" viewBox="0 0 55 56" fill="currentColor">
-                <path d="M51 31C53.2091 31 55 32.7909 55 35V52C55 54.2091 53.2091 56 51 56H4C1.79086 56 0 54.2091 0 52V35C3.54346e-07 32.7909 1.79086 31 4 31H51Z"/>
-              </svg>
-              <h3 class="text-lg font-medium text-gray-300 mb-2">No Hives Yet</h3>
-              <p class="text-gray-400 mb-4">Start by adding your first hive to this apiary.</p>
-              <button 
-                @click="showAddHiveModal = true"
-                class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-              >
-                Add Your First Hive
-              </button>
-            </div>
+            <HiveManagementTab
+              :hives="apiaryHives"
+              :can-add="canAddHive"
+              :subscription="subscription"
+              :current-usage="currentUsage"
+              :upgrade-message="upgradeMessage"
+              @add-hive="showAddHiveModal = true"
+            />
           </div>
 
           <!-- Connectivity Hub Tab -->
@@ -144,27 +112,6 @@
                 :hub="apiary.hub"
                 @click="navigateToHubDetails"
               />
-            </div>
-
-            <!-- Network Summary -->
-            <div class="bg-gray-800 rounded-lg p-6">
-              <h3 class="text-lg font-semibold mb-4">Network Summary</h3>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="text-center">
-                  <div class="text-2xl font-bold" :class="apiary.hub ? (hasOnlineHub ? 'text-green-400' : 'text-red-400') : 'text-gray-400'">
-                    {{ apiary.hub ? (hasOnlineHub ? 'ONLINE' : 'OFFLINE') : 'NO HUB' }}
-                  </div>
-                  <div class="text-sm text-gray-400">Hub Status</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-purple-400">{{ apiaryHives.length }}</div>
-                  <div class="text-sm text-gray-400">Connected Hives</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-blue-400">{{ totalSensors }}</div>
-                  <div class="text-sm text-gray-400">Total Sensors</div>
-                </div>
-              </div>
             </div>
 
             <!-- No Hub State -->
@@ -198,22 +145,6 @@
               <p class="text-gray-400 mb-4">Real-time sensor data visualization will be available here.</p>
             </div>
           </div>
-
-          <!-- Alerts Tab -->
-          <div v-if="activeTab === 'alerts'">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-semibold">Alerts & Issues</h2>
-            </div>
-
-            <!-- Empty Alerts State -->
-            <div class="text-center py-12 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700">
-              <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-              </svg>
-              <h3 class="text-lg font-medium text-gray-300 mb-2">No Active Alerts</h3>
-              <p class="text-gray-400 mb-4">Your apiary is running smoothly! Alerts will appear here when attention is needed.</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -244,101 +175,6 @@
       @close="showEditApiaryModal = false"
       @success="handleApiaryUpdated"
     />
-
-    <!-- Alert Settings Modal -->
-    <div v-if="showAlertSettingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-gray-800 rounded-lg w-full max-w-2xl mx-4">
-        <div class="flex justify-between items-center p-6 border-b border-gray-700">
-          <h3 class="text-xl font-semibold">Alert Settings</h3>
-          <button @click="showAlertSettingsModal = false" class="text-gray-400 hover:text-white">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
-            </svg>
-          </button>
-        </div>
-        
-        <div class="p-6 space-y-6">
-          <!-- Temperature Alerts -->
-          <div>
-            <h4 class="font-medium mb-3">Temperature Alerts</h4>
-            <div class="space-y-3">
-              <div class="flex items-center gap-4">
-                <label class="text-sm text-gray-400 w-24">High:</label>
-                <input type="number" value="35" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <span class="text-sm text-gray-400">°C</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <label class="text-sm text-gray-400 w-24">Low:</label>
-                <input type="number" value="5" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <span class="text-sm text-gray-400">°C</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Weight Alerts -->
-          <div>
-            <h4 class="font-medium mb-3">Weight Alerts</h4>
-            <div class="space-y-3">
-              <div class="flex items-center gap-4">
-                <label class="text-sm text-gray-400 w-24">Daily Loss:</label>
-                <input type="number" value="2" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <span class="text-sm text-gray-400">kg</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <label class="text-sm text-gray-400 w-24">Weekly Loss:</label>
-                <input type="number" value="5" class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <span class="text-sm text-gray-400">kg</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Notification Settings -->
-          <div>
-            <h4 class="font-medium mb-3">Notifications</h4>
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="font-medium">Email Alerts</div>
-                  <div class="text-sm text-gray-400">Receive critical alerts via email</div>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer" checked>
-                  <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="font-medium">SMS Alerts</div>
-                  <div class="text-sm text-gray-400">Emergency notifications via SMS</div>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer">
-                  <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="flex justify-end p-6 border-t border-gray-700">
-          <div class="flex gap-3">
-            <button 
-              @click="showAlertSettingsModal = false"
-              class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button 
-              @click="saveAlertSettings"
-              class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-            >
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -383,10 +219,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
-import HiveCard from '~/components/hive/HiveCard.vue'
 import AddHiveModal from '~/components/hive/AddHiveModal.vue'
 import ApiaryHubCard from '~/components/apiary/ApiaryHubCard.vue'
 import AddHubModal from '~/components/hub/AddHubModal.vue'
@@ -394,7 +229,6 @@ import EditApiaryModal from '~/components/apiary/EditApiaryModal.vue'
 import ApiaryHeaderCard from '~/components/apiary/ApiaryHeaderCard.vue'
 
 const route = useRoute()
-const router = useRouter()
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
@@ -418,16 +252,12 @@ const activeTab = ref('hives')
 const showAddHiveModal = ref(false)
 const showAddHubModal = ref(false)
 const showEditApiaryModal = ref(false)
-const showAlertSettingsModal = ref(false)
 const showDeleteConfirmModal = ref(false)
 
 // Data from composables
 const { 
   hivesWithSensorData, 
-  sensorsWithLatestReadings,
-  loading: hiveDataLoading,
-  refreshData: refreshHiveData,
-  clearError
+  refreshData: refreshHiveData
 } = useHiveData()
 
 const { subscription, loadSubscription } = useSubscription()
@@ -477,11 +307,6 @@ const tabs = computed(() => [
     icon: 'svg',
     badge: isLive.value ? 'LIVE' : null,
     badgeClass: 'bg-green-600 text-white animate-pulse'
-  },
-  {
-    id: 'alerts',
-    name: 'Alerts',
-    icon: 'svg'
   }
 ])
 
@@ -538,11 +363,6 @@ const getLastActivity = () => {
 }
 
 // Navigation Functions
-const navigateToHiveDetails = (hive) => {
-  const identifier = hive.uuid || hive.id
-  navigateTo(`/hives/${identifier}`)
-}
-
 const navigateToHubDetails = (hub) => {
   const identifier = hub.uuid || hub.id
   navigateTo(`/hubs/${identifier}`)
@@ -591,12 +411,6 @@ const handleDeleteApiary = async () => {
     deletingApiary.value = false
     showDeleteConfirmModal.value = false
   }
-}
-
-const saveAlertSettings = () => {
-  // TODO: Implement alert settings save
-  console.log('Saving alert settings...')
-  showAlertSettingsModal.value = false
 }
 
 const refreshData = async () => {
@@ -654,10 +468,6 @@ const loadData = async () => {
 onMounted(() => {
   loadData()
   loadSubscription()
-})
-
-onUnmounted(() => {
-  // Cleanup if needed
 })
 </script>
 
