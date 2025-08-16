@@ -91,7 +91,7 @@
           <!-- Connectivity Hub Tab -->
           <div v-if="activeTab === 'connectivity'">
             <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-semibold">Hub & Sensor Units</h2>
+              <h2 class="text-xl font-semibold">Hub & Sensor Nodes</h2>
               <div class="flex gap-2">
                 <button 
                   v-if="!apiary.hub"
@@ -115,7 +115,7 @@
             </div>
 
             <!-- No Hub State -->
-            <div v-if="!apiary.hub" class="text-center py-12 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700">
+            <div v-if="!apiary.hub" class="text-center py-12 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 mb-6">
               <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" viewBox="0 0 694 825" fill="currentColor">
                 <path d="M346.5 293L449.99 352.75V472.25L346.5 532L243.01 472.25V352.75L346.5 293Z" opacity="0.5"/>
               </svg>
@@ -128,6 +128,28 @@
                 Add Hub
               </button>
             </div>
+
+            <!-- Sensor Nodes Section -->
+            <SensorNodesList
+              :sensor-nodes="sensorNodes"
+              :available-hives="availableHives"
+              :hub-online="hasOnlineHub"
+              :scanning="scanning"
+              @scan-for-nodes="handleScanForNodes"
+              @add-node-manually="showAddSensorNodeModal = true"
+              @assign-to-hive="handleAssignSensorNodeToHive"
+              @view-details="handleViewSensorNodeDetails"
+              @remove-node="handleRemoveSensorNode"
+            />
+          </div>
+
+          <!-- Location Tab -->
+          <div v-if="activeTab === 'location'">
+            <ApiaryLocationTab
+              :apiary="apiary"
+              :modal-open="anyModalOpen"
+              @edit-apiary="showEditApiaryModal = true"
+            />
           </div>
 
           <!-- Alerts & Notifications Tab -->
@@ -209,6 +231,7 @@ import EditApiaryModal from '~/components/apiary/EditApiaryModal.vue'
 import DeleteApiaryModal from '~/components/apiary/DeleteApiaryModal.vue'
 import ApiaryHeaderCard from '~/components/apiary/ApiaryHeaderCard.vue'
 import ApiaryDetailsAlertsTab from '~/components/alert/ApiaryDetailsAlertsTab.vue'
+import SensorNodesList from '~/components/sensor/SensorNodesList.vue'
 
 const route = useRoute()
 const supabase = useSupabaseClient()
@@ -226,15 +249,20 @@ const error = ref(null)
 const refreshing = ref(false)
 const deletingApiary = ref(false)
 const apiary = ref(null)
+const sensorNodes = ref([])
+const scanning = ref(false)
 
 // UI State
-const activeTab = ref('hives')
+const activeTab = ref('connectivity')
 
 // Modal State
 const showAddHiveModal = ref(false)
 const showAddHubModal = ref(false)
 const showEditApiaryModal = ref(false)
 const showDeleteConfirmModal = ref(false)
+const showAddSensorNodeModal = ref(false)
+const showSensorNodeDetailsModal = ref(false)
+const selectedSensorNode = ref(null)
 
 // Component Refs
 const alertsTabRef = ref(null)
@@ -287,21 +315,34 @@ const criticalAlertsCount = computed(() => {
   return alertsTabRef.value?.criticalAlertsCount || alertCounts.value.critical
 })
 
+// Check if apiary has location data
+const hasLocationData = computed(() => {
+  return apiary.value?.latitude && apiary.value?.longitude
+})
+
+// Check if any modals are open
+const anyModalOpen = computed(() => {
+  return showAddHiveModal.value || 
+         showAddHubModal.value || 
+         showEditApiaryModal.value || 
+         showDeleteConfirmModal.value ||
+         showAddSensorNodeModal.value ||
+         showSensorNodeDetailsModal.value
+})
+
 // Tab Configuration
 const tabs = computed(() => [
+  {
+    id: 'connectivity',
+    name: 'Hub & Sensor Nodes',
+    icon: 'svg'
+  },
   {
     id: 'hives',
     name: 'Hives',
     icon: 'svg',
     badge: apiaryHives.value.length,
     badgeClass: apiaryHives.value.length > 0 ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'
-  },
-  {
-    id: 'connectivity',
-    name: 'Hub & Units',
-    icon: 'svg',
-    badge: apiary.value?.hub ? (hasOnlineHub.value ? 'ONLINE' : 'OFFLINE') : 'NO HUB',
-    badgeClass: apiary.value?.hub ? (hasOnlineHub.value ? 'bg-green-600 text-white' : 'bg-red-600 text-white') : 'bg-gray-600 text-white'
   },
   {
     id: 'alerts',
@@ -316,6 +357,11 @@ const tabs = computed(() => [
     icon: 'svg',
     badge: isLive.value ? 'LIVE' : null,
     badgeClass: 'bg-green-600 text-white animate-pulse'
+  },
+  {
+    id: 'location',
+    name: 'Location',
+    icon: 'svg'
   }
 ])
 
@@ -334,6 +380,11 @@ const isLive = computed(() => {
 
 const totalSensors = computed(() => {
   return apiaryHives.value.reduce((total, hive) => total + (hive.sensors?.length || 0), 0)
+})
+
+// Computed properties for sensor nodes
+const availableHives = computed(() => {
+  return apiaryHives.value.filter(hive => !hive.sensor_node || !sensorNodes.value.some(node => node.hive_id === hive.id))
 })
 
 // Helper Functions
@@ -461,6 +512,98 @@ const handleDeleteApiary = async () => {
   }
 }
 
+// Sensor Node Event Handlers
+const handleScanForNodes = async () => {
+  if (!apiary.value?.hub || scanning.value) return
+  
+  scanning.value = true
+  
+  try {
+    const token = await getAuthToken()
+    if (!token) throw new Error('Authentication token not available')
+
+    // Trigger hub to scan for sensor nodes
+    const response = await $fetch(`/api/hubs/${apiary.value.hub.id}/scan-nodes`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (response.success) {
+      // Refresh sensor nodes data
+      await loadSensorNodes()
+    } else {
+      throw new Error(response.error || 'Failed to scan for sensor nodes')
+    }
+  } catch (err) {
+    console.error('Error scanning for sensor nodes:', err)
+    alert('Failed to scan for sensor nodes. Please try again.')
+  } finally {
+    scanning.value = false
+  }
+}
+
+const handleAssignSensorNodeToHive = async ({ nodeId, hiveId }) => {
+  try {
+    const token = await getAuthToken()
+    if (!token) throw new Error('Authentication token not available')
+
+    const response = await $fetch(`/api/sensor-nodes/${nodeId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        hive_id: hiveId,
+        hub_id: apiary.value.hub?.id
+      }
+    })
+
+    if (response.success) {
+      // Refresh data
+      await Promise.all([loadSensorNodes(), refreshHiveData()])
+    } else {
+      throw new Error(response.error || 'Failed to assign sensor node')
+    }
+  } catch (err) {
+    console.error('Error assigning sensor node:', err)
+    alert('Failed to assign sensor node. Please try again.')
+  }
+}
+
+const handleViewSensorNodeDetails = (node) => {
+  selectedSensorNode.value = node
+  showSensorNodeDetailsModal.value = true
+}
+
+const handleRemoveSensorNode = async (node) => {
+  if (!confirm(`Are you sure you want to remove sensor node "${node.name}"?`)) return
+  
+  try {
+    const token = await getAuthToken()
+    if (!token) throw new Error('Authentication token not available')
+
+    const response = await $fetch(`/api/sensor-nodes/${node.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (response.success) {
+      // Refresh sensor nodes data
+      await loadSensorNodes()
+    } else {
+      throw new Error(response.error || 'Failed to remove sensor node')
+    }
+  } catch (err) {
+    console.error('Error removing sensor node:', err)
+    alert('Failed to remove sensor node. Please try again.')
+  }
+}
+
 const refreshData = async () => {
   refreshing.value = true
   await loadData()
@@ -468,12 +611,41 @@ const refreshData = async () => {
   // Load alert counts for badge display
   await loadAlertCounts()
   
+  // Load sensor nodes data
+  await loadSensorNodes()
+  
   // Also refresh alerts if we're on the alerts tab
   if (activeTab.value === 'alerts' && alertsTabRef.value) {
     await alertsTabRef.value.refreshAlerts()
   }
   
   refreshing.value = false
+}
+
+// Load sensor nodes data
+const loadSensorNodes = async () => {
+  if (!user.value || !apiary.value?.id) return
+  
+  try {
+    const token = await getAuthToken()
+    if (!token) return
+
+    const response = await $fetch('/api/sensor-nodes', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      query: {
+        apiary_id: apiary.value.id
+      }
+    })
+    
+    if (response.success && response.data) {
+      sensorNodes.value = response.data
+    }
+  } catch (err) {
+    console.error('Error loading sensor nodes:', err)
+    sensorNodes.value = []
+  }
 }
 
 // Data Loading function
@@ -515,6 +687,9 @@ const loadData = async () => {
 
     // Load alert counts for badge display (after hives are loaded)
     await loadAlertCounts()
+
+    // Load sensor nodes data
+    await loadSensorNodes()
 
   } catch (err) {
     console.error('Error loading apiary data:', err)

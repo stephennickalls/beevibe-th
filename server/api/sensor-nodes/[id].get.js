@@ -1,5 +1,5 @@
-// server/api/sensor-nodes/index.get.js
-// GET /api/sensor-nodes - List sensor nodes with optional filtering
+// server/api/sensor-nodes/[id].get.js
+// GET /api/sensor-nodes/:id - Get specific sensor node
 
 import { createClient } from '@supabase/supabase-js'
 
@@ -46,15 +46,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    console.log(`Fetching sensor nodes for user: ${user.id}`)
+    // Step 3: Get sensor node ID
+    const sensorNodeId = getRouterParam(event, 'id')
 
-    // Step 3: Get query parameters for optional filtering
-    const query = getQuery(event)
+    console.log(`Fetching sensor node ${sensorNodeId} for user: ${user.id}`)
 
     // Step 4: Query database with service role
     const serviceClient = createClient(supabaseUrl, serviceRoleKey)
-    
-    let dbQuery = serviceClient
+
+    const { data: sensorNode, error: queryError } = await serviceClient
       .from('sensor_nodes')
       .select(`
         *,
@@ -75,58 +75,30 @@ export default defineEventHandler(async (event) => {
           sensor_type,
           is_online,
           battery_level,
-          last_reading_at
+          last_reading_at,
+          latest_reading:sensor_readings(value, unit, reading_time)
         )
       `)
+      .eq('id', sensorNodeId)
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+      .single()
 
-    // Apply filters
-    if (query.apiary_id) {
-      // Filter by apiary through the hive relationship
-      dbQuery = dbQuery.eq('hive.apiary_id', parseInt(query.apiary_id))
-    }
-
-    if (query.hive_id) {
-      dbQuery = dbQuery.eq('hive_id', parseInt(query.hive_id))
-    }
-
-    const { data: sensorNodes, error: queryError } = await dbQuery
-
-    if (queryError) {
-      console.error('Database query error:', queryError)
+    if (queryError || !sensorNode) {
       throw createError({
-        statusCode: 500,
-        statusMessage: 'Failed to fetch sensor nodes from database'
+        statusCode: 404,
+        statusMessage: 'Sensor node not found'
       })
     }
 
-    // Transform data to include derived properties
-    const transformedData = sensorNodes.map(node => ({
-      ...node,
-      // Calculate battery level from sensors (average or lowest)
-      battery_level: node.sensors?.length > 0 
-        ? Math.min(...node.sensors.map(s => s.battery_level || 100))
-        : node.battery_level || 100,
-      // Determine online status
-      is_online: node.last_seen 
-        ? (new Date() - new Date(node.last_seen)) < (10 * 60 * 1000) // 10 minutes
-        : false,
-      // Calculate RSSI/signal strength (mock for now)
-      rssi: node.last_seen ? -50 + Math.floor(Math.random() * 30) : null
-    }))
-
-    console.log(`Successfully fetched ${transformedData?.length || 0} sensor nodes for user ${user.id}`)
+    console.log(`Successfully fetched sensor node ${sensorNodeId} for user ${user.id}`)
 
     return {
       success: true,
-      data: transformedData || [],
-      count: transformedData?.length || 0,
-      user_id: user.id
+      data: sensorNode
     }
 
   } catch (error) {
-    console.error('Sensor nodes API error:', error)
+    console.error('Sensor node detail API error:', error)
     
     if (error.statusCode) {
       throw error
@@ -134,7 +106,7 @@ export default defineEventHandler(async (event) => {
     
     throw createError({
       statusCode: 500,
-      statusMessage: 'Internal server error while fetching sensor nodes'
+      statusMessage: 'Internal server error while fetching sensor node'
     })
   }
 })
