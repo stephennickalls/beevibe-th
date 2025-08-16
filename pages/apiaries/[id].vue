@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
     <!-- Sidebar Navigation -->
-    <SidebarNavigation :alert-count="0" />
+    <SidebarNavigation :alert-count="totalActiveAlertsCount" />
 
     <!-- Main Content -->
     <div class="flex-1 p-6">
@@ -32,7 +32,7 @@
           <span class="text-white">{{ apiary.name }}</span>
         </nav>
 
-        <!-- Header Section with Settings -->
+        <!-- Header Section with Edit Button -->
         <ApiaryHeaderCard
           :apiary="apiary"
           :health-score="healthScore"
@@ -130,6 +130,15 @@
             </div>
           </div>
 
+          <!-- Alerts & Notifications Tab -->
+          <div v-if="activeTab === 'alerts'">
+            <ApiaryDetailsAlertsTab
+              ref="alertsTabRef"
+              :apiary-id="apiary.id"
+              :hives="apiaryHives"
+            />
+          </div>
+
           <!-- Live Data Tab -->
           <div v-if="activeTab === 'data'">
             <div class="flex justify-between items-center mb-6">
@@ -169,6 +178,7 @@
       @success="handleHubAdded"
     />
 
+    <!-- Edit Apiary Modal Component -->
     <EditApiaryModal
       :show="showEditApiaryModal"
       :apiary="apiary"
@@ -176,57 +186,29 @@
       @success="handleApiaryUpdated"
     />
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-gray-800 rounded-lg w-full max-w-md mx-4">
-        <div class="p-6">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 bg-red-900/30 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z"/>
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-lg font-semibold">Delete Apiary</h3>
-              <p class="text-sm text-gray-400">This action cannot be undone</p>
-            </div>
-          </div>
-          
-          <p class="text-gray-300 mb-4">
-            Are you sure you want to delete "{{ apiary.name }}"? 
-            {{ apiaryHives.length > 0 ? `This will unassign ${apiaryHives.length} hive${apiaryHives.length > 1 ? 's' : ''} from this apiary.` : '' }}
-          </p>
-          
-          <div class="flex gap-3">
-            <button 
-              @click="showDeleteConfirmModal = false"
-              class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button 
-              @click="handleDeleteApiary"
-              :disabled="deletingApiary"
-              class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {{ deletingApiary ? 'Deleting...' : 'Delete Apiary' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Delete Apiary Modal Component -->
+    <DeleteApiaryModal
+      :show="showDeleteConfirmModal"
+      :apiary="apiary"
+      :deleting="deletingApiary"
+      :hive-count="apiaryHives.length"
+      @close="showDeleteConfirmModal = false"
+      @delete="handleDeleteApiary"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import AddHiveModal from '~/components/hive/AddHiveModal.vue'
 import ApiaryHubCard from '~/components/apiary/ApiaryHubCard.vue'
 import AddHubModal from '~/components/hub/AddHubModal.vue'
 import EditApiaryModal from '~/components/apiary/EditApiaryModal.vue'
+import DeleteApiaryModal from '~/components/apiary/DeleteApiaryModal.vue'
 import ApiaryHeaderCard from '~/components/apiary/ApiaryHeaderCard.vue'
+import ApiaryDetailsAlertsTab from '~/components/alert/ApiaryDetailsAlertsTab.vue'
 
 const route = useRoute()
 const supabase = useSupabaseClient()
@@ -253,6 +235,17 @@ const showAddHiveModal = ref(false)
 const showAddHubModal = ref(false)
 const showEditApiaryModal = ref(false)
 const showDeleteConfirmModal = ref(false)
+
+// Component Refs
+const alertsTabRef = ref(null)
+
+// Independent alert state for badge display
+const alertCounts = ref({
+  active: 0,
+  critical: 0,
+  warning: 0,
+  info: 0
+})
 
 // Data from composables
 const { 
@@ -285,6 +278,15 @@ const upgradeMessage = computed(() => {
   return `You've reached the hive limit for your ${subscription.value.planDisplayName} plan.`
 })
 
+// Alert counts - use independent counts as fallback when alerts tab isn't mounted
+const totalActiveAlertsCount = computed(() => {
+  return alertsTabRef.value?.activeAlertsCount || alertCounts.value.active
+})
+
+const criticalAlertsCount = computed(() => {
+  return alertsTabRef.value?.criticalAlertsCount || alertCounts.value.critical
+})
+
 // Tab Configuration
 const tabs = computed(() => [
   {
@@ -300,6 +302,13 @@ const tabs = computed(() => [
     icon: 'svg',
     badge: apiary.value?.hub ? (hasOnlineHub.value ? 'ONLINE' : 'OFFLINE') : 'NO HUB',
     badgeClass: apiary.value?.hub ? (hasOnlineHub.value ? 'bg-green-600 text-white' : 'bg-red-600 text-white') : 'bg-gray-600 text-white'
+  },
+  {
+    id: 'alerts',
+    name: 'Alerts',
+    icon: 'svg',
+    badge: totalActiveAlertsCount.value > 0 ? totalActiveAlertsCount.value : null,
+    badgeClass: criticalAlertsCount.value > 0 ? 'bg-red-600 text-white animate-pulse' : 'bg-yellow-600 text-white'
   },
   {
     id: 'data',
@@ -334,6 +343,44 @@ const getAuthToken = async () => {
   return session?.access_token
 }
 
+// Independent function to load alert counts for badge display
+const loadAlertCounts = async () => {
+  if (!user.value || !apiary.value?.id) return
+  
+  try {
+    const token = await getAuthToken()
+    if (!token) return
+
+    const response = await $fetch('/api/alerts', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      query: {
+        status: 'active',
+        limit: 200
+      }
+    })
+    
+    if (response.success && response.data) {
+      // Filter alerts for this apiary's hives
+      const apiaryAlerts = response.data.filter(alert => 
+        apiaryHives.value.some(hive => hive.id === alert.hive_id)
+      )
+      
+      // Calculate counts
+      alertCounts.value = {
+        active: apiaryAlerts.length,
+        critical: apiaryAlerts.filter(a => a.severity === 'critical').length,
+        warning: apiaryAlerts.filter(a => a.severity === 'warning').length,
+        info: apiaryAlerts.filter(a => a.severity === 'info').length
+      }
+    }
+  } catch (err) {
+    console.error('Error loading alert counts:', err)
+    alertCounts.value = { active: 0, critical: 0, warning: 0, info: 0 }
+  }
+}
+
 const isHubOnline = (hub) => {
   if (!hub.last_seen) return false
   const lastSeen = new Date(hub.last_seen).getTime()
@@ -346,6 +393,7 @@ const calculateHealthScore = () => {
   
   if (!apiary.value?.is_active) score -= 50
   if (!hasOnlineHub.value) score -= 20
+  if (criticalAlertsCount.value > 0) score -= (criticalAlertsCount.value * 10)
   
   return Math.max(0, score)
 }
@@ -416,6 +464,15 @@ const handleDeleteApiary = async () => {
 const refreshData = async () => {
   refreshing.value = true
   await loadData()
+  
+  // Load alert counts for badge display
+  await loadAlertCounts()
+  
+  // Also refresh alerts if we're on the alerts tab
+  if (activeTab.value === 'alerts' && alertsTabRef.value) {
+    await alertsTabRef.value.refreshAlerts()
+  }
+  
   refreshing.value = false
 }
 
@@ -456,6 +513,9 @@ const loadData = async () => {
       apiary.value.hub = apiaryHub || null
     }
 
+    // Load alert counts for badge display (after hives are loaded)
+    await loadAlertCounts()
+
   } catch (err) {
     console.error('Error loading apiary data:', err)
     error.value = err.message || 'Failed to load apiary data'
@@ -463,6 +523,20 @@ const loadData = async () => {
     loading.value = false
   }
 }
+
+// Watch for hive changes to update alert counts
+watch(apiaryHives, async (newHives) => {
+  if (newHives.length > 0) {
+    await loadAlertCounts()
+  }
+}, { deep: true })
+
+// Watch for tab changes to load alerts when needed
+watch(activeTab, (newTab) => {
+  if (newTab === 'alerts' && alertsTabRef.value && apiary.value) {
+    alertsTabRef.value.fetchAlerts()
+  }
+})
 
 // Lifecycle
 onMounted(() => {

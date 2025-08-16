@@ -51,19 +51,19 @@
         </div>
       </div>
       
-      <!-- Settings & Action Buttons -->
+      <!-- Edit & Action Buttons -->
       <div class="flex gap-2 ml-6">
         <button 
-          @click="toggleSettingsDropdown"
+          @click="toggleEditDropdown"
           class="relative px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
         >
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"/>
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
           </svg>
-          Settings
+          Edit
           
-          <!-- Settings Dropdown -->
-          <div v-if="showSettingsDropdown" class="absolute top-full right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
+          <!-- Edit Dropdown -->
+          <div v-if="showEditDropdown" class="absolute top-full right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
             <div class="py-1">
               <button 
                 @click="handleEditApiary"
@@ -73,15 +73,6 @@
                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                 </svg>
                 Edit Apiary
-              </button>
-              <button 
-                @click="handleAlertSettings"
-                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-700 flex items-center gap-2"
-              >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z"/>
-                </svg>
-                Alert Settings
               </button>
               <div class="border-t border-gray-700 my-1"></div>
               <button 
@@ -147,16 +138,15 @@ const props = defineProps({
   }
 })
 
-// Emits
+// Emits - removed 'alertSettings' since we no longer need it
 const emit = defineEmits([
   'refresh',
   'editApiary', 
-  'alertSettings', 
   'deleteApiary'
 ])
 
-// Local state
-const showSettingsDropdown = ref(false)
+// Local state - renamed from showSettingsDropdown to showEditDropdown
+const showEditDropdown = ref(false)
 
 // Computed properties
 const statusColor = computed(() => {
@@ -197,36 +187,31 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString()
 }
 
-const toggleSettingsDropdown = () => {
-  showSettingsDropdown.value = !showSettingsDropdown.value
+const toggleEditDropdown = () => {
+  showEditDropdown.value = !showEditDropdown.value
 }
 
 const handleEditApiary = () => {
-  showSettingsDropdown.value = false
+  showEditDropdown.value = false
   emit('editApiary')
 }
 
-const handleAlertSettings = () => {
-  showSettingsDropdown.value = false
-  emit('alertSettings')
-}
-
 const handleDeleteApiary = () => {
-  showSettingsDropdown.value = false
+  showEditDropdown.value = false
   emit('deleteApiary')
 }
 
 // Click outside handler
 const handleClickOutside = (event) => {
   if (!event.target.closest('.relative')) {
-    showSettingsDropdown.value = false
+    showEditDropdown.value = false
   }
 }
 
 // Expose method for parent to close dropdown
 defineExpose({
   closeDropdown: () => {
-    showSettingsDropdown.value = false
+    showEditDropdown.value = false
   }
 })
 </script>
