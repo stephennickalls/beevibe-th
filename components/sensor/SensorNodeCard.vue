@@ -1,192 +1,161 @@
 <template>
-  <div class="bg-gray-900 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors">
-    <!-- Single Row Layout -->
+  <div
+    class="bg-gray-900 rounded-lg p-4 hover:bg-gray-800 transition-colors border border-gray-700 hover:border-gray-600 cursor-pointer"
+    @click="handleViewDetails"
+  >
     <div class="flex items-center justify-between">
-      <!-- Left Section: Node Icon & Info -->
-      <div class="flex items-center gap-4">
+      <!-- Left Section: Main Info -->
+      <div class="flex items-center space-x-4 flex-1">
         <!-- Node Icon & Status -->
         <div class="relative">
           <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-700">
-            <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.05 3.636a1 1 0 010 1.414 7 7 0 000 9.9 1 1 0 11-1.414 1.414 9 9 0 010-12.728 1 1 0 011.414 0zm9.9 0a1 1 0 011.414 0 9 9 0 010 12.728 1 1 0 11-1.414-1.414 7 7 0 000-9.9 1 1 0 010-1.414zM7.879 6.464a1 1 0 010 1.414 3 3 0 000 4.243 1 1 0 11-1.415 1.414 5 5 0 010-7.07 1 1 0 011.415 0zm4.242 0a1 1 0 011.415 0 5 5 0 010 7.072a1 1 0 01-1.415-1.415 3 3 0 000-4.242 1 1 0 010-1.415zM10 8a2 2 0 100 4 2 2 0 000-4z"/>
+            <!-- ESP32 Node Icon -->
+            <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM8 12c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm4 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm4 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
             </svg>
           </div>
           <!-- Status Indicator -->
           <div :class="[
-            'absolute -top-1 -right-1 w-3 h-3 rounded-full border border-gray-900',
-            statusColor
+            'absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-900',
+            isOnline ? 'bg-green-400' : 'bg-red-400'
           ]"></div>
         </div>
 
         <!-- Node Details -->
-        <div class="flex items-center gap-6">
-          <!-- Main Info -->
-          <div>
-            <h4 class="font-semibold text-white text-lg">{{ sensorNode.name }}</h4>
-            <div class="flex items-center gap-4 text-sm text-gray-400">
-              <div class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
-                </svg>
-                <span>{{ assignedHive ? assignedHive.name : 'Unassigned' }}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                </svg>
-                <span>{{ sensorsCount }} sensors</span>
-              </div>
-              <div v-if="sensorNode.firmware_version" class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
-                </svg>
-                <span>v{{ sensorNode.firmware_version }}</span>
-              </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="font-medium text-white truncate">
+              {{ sensorNode.name }}
+            </h3>
+            <!-- Node Type Badge -->
+            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-900/30 text-blue-400 border border-blue-500/30">
+              ESP32 Node
+            </span>
+          </div>
+          
+          <div class="flex items-center gap-4 text-sm text-gray-400">
+            <!-- Hive Assignment -->
+            <div class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
+              </svg>
+              <span>{{ assignedHive?.name || 'Unassigned' }}</span>
+            </div>
+            
+            <!-- Connected Sensors -->
+            <div class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+              </svg>
+              <span>{{ sensorsCount }} sensors</span>
+            </div>
+
+            <!-- Firmware Version -->
+            <div v-if="sensorNode.firmware_version" class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+              </svg>
+              <span>v{{ sensorNode.firmware_version }}</span>
             </div>
           </div>
-
-          <!-- Type Badge -->
-          <span class="px-3 py-1 text-sm font-medium rounded-full bg-yellow-900/40 text-yellow-400 border border-yellow-500/40">
-            ESP32 Node
-          </span>
         </div>
       </div>
 
       <!-- Right Section: Status & Metrics -->
-      <div class="flex items-center gap-6">
+      <div class="flex items-center space-x-4">
         <!-- Last Seen -->
-        <div class="text-center">
-          <div class="text-sm text-gray-400">Last Seen</div>
-          <div class="text-white font-medium">{{ formatLastSeen(sensorNode.last_seen) }}</div>
-        </div>
-
-        <!-- Battery Level -->
-        <div class="text-center">
-          <div class="text-sm text-gray-400">Battery</div>
-          <div :class="[
-            'text-lg font-bold',
-            batteryColor
-          ]">
-            {{ batteryLevel }}%
+        <div class="text-right">
+          <div class="text-sm font-medium text-white">
+            Last Seen
           </div>
-          <div class="w-16 bg-gray-700 rounded-full h-2 mt-1">
-            <div 
-              :class="[
-                'h-2 rounded-full transition-all duration-300',
-                batteryLevel > 60 ? 'bg-green-400' : batteryLevel > 30 ? 'bg-yellow-400' : 'bg-red-400'
-              ]"
-              :style="{ width: `${batteryLevel}%` }"
-            ></div>
+          <div class="text-xs text-gray-400">
+            {{ formatLastSeen(sensorNode.last_seen) }}
           </div>
         </div>
 
-        <!-- Signal Strength -->
-        <div class="text-center">
-          <div class="text-sm text-gray-400">Signal</div>
-          <div class="flex items-center justify-center gap-1 mt-1">
-            <div v-for="bar in 4" :key="bar" :class="[
-              'w-1 h-4 rounded-sm',
-              signalStrength >= (bar * 25) ? 'bg-green-400' : 'bg-gray-600'
-            ]"></div>
+        <!-- Telemetry Row -->
+        <div class="flex gap-2 min-w-[200px]">
+          <!-- Battery Level -->
+          <div class="flex flex-col items-center p-2 bg-gray-700 rounded min-w-[60px]">
+            <div :class="[
+              'text-xs font-medium mb-1',
+              getBatteryColor(batteryLevel)
+            ]">
+              {{ batteryLevel || 0 }}%
+            </div>
+            <div class="w-4 h-6 bg-gray-600 rounded border flex flex-col justify-end">
+              <div 
+                :class="[
+                  'rounded transition-all duration-300',
+                  getBatteryFillColor(batteryLevel)
+                ]"
+                :style="{ height: `${batteryLevel || 0}%` }"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Signal Strength -->
+          <div class="flex flex-col items-center p-2 bg-gray-700 rounded min-w-[60px]">
+            <div class="text-xs font-medium mb-1 text-gray-400">
+              Signal
+            </div>
+            <div :class="[
+              'text-xs font-medium',
+              getSignalColor(signalStrength)
+            ]">
+              {{ signalStrength || 'N/A' }}
+            </div>
+          </div>
+
+          <!-- Voltage (if available) -->
+          <div v-if="sensorNode.voltage" class="flex flex-col items-center p-2 bg-gray-700 rounded min-w-[60px]">
+            <div class="text-xs font-medium mb-1 text-blue-400">
+              Voltage
+            </div>
+            <div class="text-xs text-gray-300 font-medium">
+              {{ sensorNode.voltage }}V
+            </div>
           </div>
         </div>
 
-        <!-- Voltage (if available) -->
-        <div v-if="sensorNode.voltage" class="text-center">
-          <div class="text-sm text-gray-400">Voltage</div>
-          <div class="text-white font-medium">{{ sensorNode.voltage }}V</div>
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2">
+          <!-- Assign to Hive Button -->
+          <button 
+            v-if="!sensorNode.hive_id && availableHives.length > 0"
+            @click.stop="$emit('assign-to-hive', sensorNode)"
+            class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+          >
+            Assign
+          </button>
+          
+          <!-- Remove Button -->
+          <button 
+            @click.stop="$emit('remove-node', sensorNode)"
+            class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+          >
+            Remove
+          </button>
         </div>
 
         <!-- Status Badge -->
-        <div class="text-center">
+        <div class="flex flex-col items-end space-y-1">
           <span :class="[
-            'px-3 py-1 text-sm font-medium rounded-full',
-            isOnline ? 'bg-green-900/30 text-green-400 border border-green-500/30' : 'bg-red-900/30 text-red-400 border border-red-500/30'
+            'px-2 py-1 text-xs font-medium rounded-full',
+            isOnline 
+              ? 'bg-green-900/30 text-green-400 border border-green-500/30'
+              : 'bg-red-900/30 text-red-400 border border-red-500/30'
           ]">
             {{ isOnline ? 'Online' : 'Offline' }}
           </span>
         </div>
-
-        <!-- Actions Dropdown -->
-        <div class="relative">
-          <button 
-            @click="showDropdown = !showDropdown"
-            class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
-          >
-            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-            </svg>
-          </button>
-          
-          <div v-if="showDropdown" class="absolute right-0 top-full mt-1 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10">
-            <button 
-              @click="handleViewDetails"
-              class="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 rounded-t-lg"
-            >
-              View Details
-            </button>
-            <button 
-              @click="handleAssign"
-              v-if="!assignedHive && availableHives.length > 0"
-              class="w-full px-4 py-2 text-left text-sm text-blue-400 hover:bg-gray-700"
-            >
-              Assign to Hive
-            </button>
-            <button 
-              @click="handleUnassign"
-              v-else-if="assignedHive"
-              class="w-full px-4 py-2 text-left text-sm text-yellow-400 hover:bg-gray-700"
-            >
-              Unassign
-            </button>
-            <button 
-              @click="handleRemove"
-              class="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700 rounded-b-lg border-t border-gray-700"
-            >
-              Remove Node
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Assignment Row (when unassigned and available hives) -->
-    <div v-if="!assignedHive && availableHives.length > 0 && showAssignmentRow" class="mt-4 pt-4 border-t border-gray-700">
-      <div class="flex items-center gap-3">
-        <label class="text-sm font-medium text-gray-300">Assign to Hive:</label>
-        <select 
-          v-model="selectedHiveId"
-          class="flex-1 max-w-xs px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-white focus:outline-none focus:border-blue-500"
-        >
-          <option value="">Select a hive...</option>
-          <option 
-            v-for="hive in availableHives" 
-            :key="hive.id" 
-            :value="hive.id"
-          >
-            {{ hive.name }}
-          </option>
-        </select>
-        <button 
-          @click="confirmAssignment"
-          :disabled="!selectedHiveId"
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded text-sm transition-colors"
-        >
-          Assign
-        </button>
-        <button 
-          @click="showAssignmentRow = false"
-          class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-colors"
-        >
-          Cancel
-        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 // Props
 const props = defineProps({
@@ -203,14 +172,9 @@ const props = defineProps({
 // Events
 const emit = defineEmits(['assign-to-hive', 'view-details', 'remove-node'])
 
-// Reactive data
-const showDropdown = ref(false)
-const selectedHiveId = ref('')
-const showAssignmentRow = ref(false)
-
-// Computed properties
+// Computed Properties
 const assignedHive = computed(() => {
-  return props.sensorNode.hive || null
+  return props.sensorNode.hive
 })
 
 const sensorsCount = computed(() => {
@@ -221,42 +185,38 @@ const batteryLevel = computed(() => {
   return props.sensorNode.battery_level || 0
 })
 
-const batteryColor = computed(() => {
-  const level = batteryLevel.value
-  if (level > 60) return 'text-green-400'
-  if (level > 30) return 'text-yellow-400'
-  return 'text-red-400'
-})
-
 const signalStrength = computed(() => {
-  // Convert RSSI or signal strength to percentage (0-100)
-  const rssi = props.sensorNode.rssi || -100
-  return Math.max(0, Math.min(100, (rssi + 100) * 2))
-})
-
-const statusColor = computed(() => {
-  if (!props.sensorNode.last_seen) return 'bg-gray-400'
-  
-  const lastSeen = new Date(props.sensorNode.last_seen)
-  const now = new Date()
-  const diffMinutes = (now - lastSeen) / (1000 * 60)
-  
-  if (diffMinutes < 10) return 'bg-green-400'  // Online
-  if (diffMinutes < 60) return 'bg-yellow-400' // Warning
-  return 'bg-red-400' // Offline
+  return props.sensorNode.signal_strength || 0
 })
 
 const isOnline = computed(() => {
   if (!props.sensorNode.last_seen) return false
-  
-  const lastSeen = new Date(props.sensorNode.last_seen)
-  const now = new Date()
-  const diffMinutes = (now - lastSeen) / (1000 * 60)
-  
-  return diffMinutes < 10
+  const lastSeen = new Date(props.sensorNode.last_seen).getTime()
+  const now = Date.now()
+  return now - lastSeen < 5 * 60 * 1000 // 5 minutes
 })
 
 // Helper functions
+const getBatteryColor = (level) => {
+  if (!level) return 'text-gray-400'
+  if (level > 50) return 'text-green-400'
+  if (level > 20) return 'text-yellow-400'
+  return 'text-red-400'
+}
+
+const getBatteryFillColor = (level) => {
+  if (level >= 50) return 'bg-green-400'
+  if (level >= 20) return 'bg-yellow-400'
+  return 'bg-red-400'
+}
+
+const getSignalColor = (rssi) => {
+  if (!rssi) return 'text-gray-400'
+  if (rssi > -60) return 'text-green-400'
+  if (rssi > -80) return 'text-yellow-400'
+  return 'text-red-400'
+}
+
 const formatLastSeen = (dateStr) => {
   if (!dateStr) return 'Never'
   
@@ -275,47 +235,57 @@ const formatLastSeen = (dateStr) => {
 }
 
 // Event handlers
-const handleAssign = () => {
-  showAssignmentRow.value = true
-  showDropdown.value = false
-}
-
-const confirmAssignment = () => {
-  if (selectedHiveId.value) {
-    emit('assign-to-hive', props.sensorNode.id, selectedHiveId.value)
-    selectedHiveId.value = ''
-    showAssignmentRow.value = false
-  }
-}
-
-const handleUnassign = () => {
-  emit('assign-to-hive', props.sensorNode.id, null)
-  showDropdown.value = false
-}
-
 const handleViewDetails = () => {
   emit('view-details', props.sensorNode)
-  showDropdown.value = false
 }
-
-const handleRemove = () => {
-  emit('remove-node', props.sensorNode)
-  showDropdown.value = false
-}
-
-// Click outside to close dropdown
-const handleClickOutside = (event) => {
-  if (!event.target.closest('.relative')) {
-    showDropdown.value = false
-  }
-}
-
-// Add click outside listener
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
+
+<style scoped>
+/* Transition effects */
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Hover effects */
+.cursor-pointer:hover {
+  transform: translateY(-1px);
+}
+
+/* Status indicator colors */
+.bg-green-400 { background-color: #4ade80; }
+.bg-yellow-400{ background-color: #facc15; }
+.bg-red-400   { background-color: #f87171; }
+
+.text-green-400  { color: #4ade80; }
+.text-yellow-400 { color: #facc15; }
+.text-red-400    { color: #f87171; }
+.text-blue-400   { color: #60a5fa; }
+.text-gray-400   { color: #9ca3af; }
+
+/* Background colors */
+.bg-gray-900 { background-color: #111827; }
+.bg-gray-800 { background-color: #1f2937; }
+.bg-gray-700 { background-color: #374151; }
+.bg-gray-600 { background-color: #4b5563; }
+
+.border-gray-700 { border-color: #374151; }
+.border-gray-600 { border-color: #4b5563; }
+
+/* Badge backgrounds with opacity */
+.bg-blue-900\/30  { background-color: rgba(30, 58, 138, 0.3); }
+.bg-green-900\/30 { background-color: rgba(20, 83, 45, 0.3); }
+.bg-red-900\/30   { background-color: rgba(127, 29, 29, 0.3); }
+
+/* Border colors with opacity */
+.border-blue-500\/30  { border-color: rgba(59, 130, 246, 0.3); }
+.border-green-500\/30 { border-color: rgba(34, 197, 94, 0.3); }
+.border-red-500\/30   { border-color: rgba(239, 68, 68, 0.3); }
+</style>

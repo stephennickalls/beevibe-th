@@ -78,6 +78,14 @@ export default defineEventHandler(async (event) => {
           uuid,
           name,
           last_seen
+        ),
+        sensors (
+          id,
+          name,
+          sensor_type,
+          is_online,
+          battery_level,
+          last_reading_at
         )
       `)
       .eq('user_id', user.id)
@@ -155,11 +163,12 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Process the data to add assignment status
+    // Process the data to add assignment status and sensor count
     const processedNodes = (sensorNodes || []).map(node => ({
       ...node,
       assignment_status: node.hive_id ? 'assigned' : 'unassigned',
       hub_connection_status: node.hub_id ? 'connected' : 'unconnected',
+      sensors_count: node.sensors?.length || 0, // Add sensor count
       // Add battery level from telemetry if available
       battery_level: null, // Will be populated by separate telemetry query
       signal_strength: null // Will be populated by separate telemetry query
