@@ -64,17 +64,20 @@ export default defineEventHandler(async (event) => {
         name,
         description,
         user_id,
+        last_seen,
+        firmware_version,
         created_at,
         updated_at,
-        hives (
+        hive:hives (
           id,
           uuid,
           name
         ),
-        apiary_hubs (
+        hub:apiary_hubs (
           id,
           uuid,
-          name
+          name,
+          last_seen
         )
       `)
       .eq('user_id', user.id)
@@ -107,15 +110,11 @@ export default defineEventHandler(async (event) => {
         
         if (hives && hives.length > 0) {
           const hiveIds = hives.map(h => h.id)
-          dbQuery = dbQuery.in('hive_id', hiveIds)
+          // Use .is() for NULL check and .in() for specific hive IDs
+          dbQuery = dbQuery.or(`hive_id.in.(${hiveIds.join(',')}),hive_id.is.null`)
         } else {
-          // No hives in this apiary, return empty result
-          return {
-            success: true,
-            data: [],
-            count: 0,
-            user_id: user.id
-          }
+          // No hives in this apiary, return only unassigned nodes
+          dbQuery = dbQuery.is('hive_id', null)
         }
       } else {
         // Apiary not found, return empty result
@@ -128,9 +127,22 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Optional filtering by hive_id
+    // Optional filtering by hive_id - handle special case for unassigned
     if (query.hive_id) {
-      dbQuery = dbQuery.eq('hive_id', parseInt(query.hive_id))
+      if (query.hive_id === 'unassigned' || query.hive_id === 'null') {
+        dbQuery = dbQuery.is('hive_id', null)
+      } else {
+        dbQuery = dbQuery.eq('hive_id', parseInt(query.hive_id))
+      }
+    }
+
+    // Optional filtering by hub_id
+    if (query.hub_id) {
+      if (query.hub_id === 'unassigned' || query.hub_id === 'null') {
+        dbQuery = dbQuery.is('hub_id', null)
+      } else {
+        dbQuery = dbQuery.eq('hub_id', parseInt(query.hub_id))
+      }
     }
 
     const { data: sensorNodes, error: queryError } = await dbQuery
@@ -143,12 +155,51 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    console.log(`Successfully fetched ${sensorNodes?.length || 0} sensor nodes for user ${user.id}`)
+    // Process the data to add assignment status
+    const processedNodes = (sensorNodes || []).map(node => ({
+      ...node,
+      assignment_status: node.hive_id ? 'assigned' : 'unassigned',
+      hub_connection_status: node.hub_id ? 'connected' : 'unconnected',
+      // Add battery level from telemetry if available
+      battery_level: null, // Will be populated by separate telemetry query
+      signal_strength: null // Will be populated by separate telemetry query
+    }))
+
+    // Get telemetry data for nodes if any exist
+    if (processedNodes.length > 0) {
+      const nodeIds = processedNodes.map(n => n.id)
+      const { data: telemetryData } = await serviceClient
+        .from('device_telemetry')
+        .select('device_id, battery_level, rssi, recorded_at')
+        .eq('device_type', 'UNIT')
+        .in('device_id', nodeIds)
+        .order('recorded_at', { ascending: false })
+
+      // Create a map of latest telemetry per node
+      const telemetryMap = {}
+      telemetryData?.forEach(t => {
+        if (!telemetryMap[t.device_id]) {
+          telemetryMap[t.device_id] = t
+        }
+      })
+
+      // Merge telemetry data with nodes
+      processedNodes.forEach(node => {
+        const telemetry = telemetryMap[node.id]
+        if (telemetry) {
+          node.battery_level = telemetry.battery_level
+          node.signal_strength = telemetry.rssi
+          node.last_telemetry_at = telemetry.recorded_at
+        }
+      })
+    }
+
+    console.log(`Successfully fetched ${processedNodes?.length || 0} sensor nodes for user ${user.id}`)
 
     return {
       success: true,
-      data: sensorNodes || [],
-      count: sensorNodes?.length || 0,
+      data: processedNodes,
+      count: processedNodes?.length || 0,
       user_id: user.id
     }
 

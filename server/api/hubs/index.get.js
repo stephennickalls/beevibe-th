@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
     
     if (hubIds.length > 0) {
       const { data: unitsData, error: unitsError } = await serviceClient
-        .from('sensor_units')
+        .from('sensor_nodes')
         .select('hub_id, id')
         .in('hub_id', hubIds)
         .eq('user_id', user.id)
@@ -165,7 +165,7 @@ export default defineEventHandler(async (event) => {
     // Step 9: Format response
     const hubs = (hubsData || []).map(hub => ({
       ...hub,
-      sensor_units_count: sensorUnitsByHub[hub.id] || 0,
+      sensor_nodes_count: sensorUnitsByHub[hub.id] || 0,
       telemetry: telemetryByHub[hub.id] || null,
       pending_commands_count: pendingCommandsByHub[hub.id] || 0
     }))

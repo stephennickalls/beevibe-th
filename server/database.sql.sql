@@ -17,8 +17,8 @@ CREATE TABLE public.alerts (
   created_at timestamp with time zone DEFAULT now(),
   resolved_at timestamp with time zone,
   CONSTRAINT alerts_pkey PRIMARY KEY (id),
-  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
-  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id)
+  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
+  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
 );
 CREATE TABLE public.apiaries (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE public.daily_summaries (
 );
 CREATE TABLE public.device_commands (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
-  device_type character varying NOT NULL CHECK (device_type::text = ANY (ARRAY['HUB'::character varying, 'UNIT'::character varying]::text[])),
+  device_type character varying NOT NULL CHECK (device_type::text = ANY (ARRAY['HUB'::character varying, 'NODE'::character varying]::text[])),
   device_id integer NOT NULL,
   target_sensor_id integer,
   command_type character varying NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE public.device_commands (
 );
 CREATE TABLE public.device_telemetry (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
-  device_type character varying NOT NULL CHECK (device_type::text = ANY (ARRAY['HUB'::character varying, 'UNIT'::character varying]::text[])),
+  device_type character varying NOT NULL CHECK (device_type::text = ANY (ARRAY['HUB'::character varying, 'NODE'::character varying]::text[])),
   device_id integer NOT NULL,
   recorded_at timestamp with time zone NOT NULL DEFAULT now(),
   battery_level integer,
@@ -122,9 +122,9 @@ CREATE TABLE public.hives (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT hives_pkey PRIMARY KEY (id),
-  CONSTRAINT hives_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
+  CONSTRAINT hives_apiary_id_fkey FOREIGN KEY (apiary_id) REFERENCES public.apiaries(id),
   CONSTRAINT hives_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT hives_apiary_id_fkey FOREIGN KEY (apiary_id) REFERENCES public.apiaries(id)
+  CONSTRAINT hives_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.hub_firmware (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -203,9 +203,9 @@ CREATE TABLE public.sensor_readings (
   signal_strength integer,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT sensor_readings_pkey PRIMARY KEY (id),
-  CONSTRAINT sensor_readings_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
   CONSTRAINT sensor_readings_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
-  CONSTRAINT sensor_readings_hub_id_fkey FOREIGN KEY (hub_id) REFERENCES public.apiary_hubs(id)
+  CONSTRAINT sensor_readings_hub_id_fkey FOREIGN KEY (hub_id) REFERENCES public.apiary_hubs(id),
+  CONSTRAINT sensor_readings_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
 );
 CREATE TABLE public.sensors (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -223,9 +223,9 @@ CREATE TABLE public.sensors (
   updated_at timestamp with time zone DEFAULT now(),
   sensor_node_id integer,
   CONSTRAINT sensors_pkey PRIMARY KEY (id),
+  CONSTRAINT sensors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
   CONSTRAINT sensors_sensor_node_id_fkey FOREIGN KEY (sensor_node_id) REFERENCES public.sensor_nodes(id),
-  CONSTRAINT sensors_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
-  CONSTRAINT sensors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT sensors_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
 );
 CREATE TABLE public.subscription_plans (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,

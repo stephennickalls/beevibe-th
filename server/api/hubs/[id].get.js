@@ -134,7 +134,7 @@ export default defineEventHandler(async (event) => {
 
     // Step 5: Get sensor units for this hub
     const { data: sensorUnits, error: sensorUnitsError } = await serviceClient
-      .from('sensor_units')
+      .from('sensor_nodes')
       .select(`
         id,
         uuid,
@@ -213,8 +213,8 @@ export default defineEventHandler(async (event) => {
     // Step 9: Combine all data
     const hubWithDetails = {
       ...hub,
-      sensor_units: sensorUnits || [],
-      sensor_units_count: (sensorUnits || []).length,
+      sensor_nodes: sensorUnits || [],
+      sensor_nodes_count: (sensorUnits || []).length,
       telemetry: telemetry || null,
       pending_commands: pendingCommands || [],
       pending_commands_count: (pendingCommands || []).length,
@@ -225,7 +225,7 @@ export default defineEventHandler(async (event) => {
       id: hub.id,
       uuid: hub.uuid,
       name: hub.name,
-      sensor_units_count: hubWithDetails.sensor_units_count,
+      sensor_nodes_count: hubWithDetails.sensor_nodes_count,
       pending_commands_count: hubWithDetails.pending_commands_count,
       has_telemetry: !!hubWithDetails.telemetry,
       telemetry_history_count: hubWithDetails.telemetry_history.length
