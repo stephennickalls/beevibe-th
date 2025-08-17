@@ -3,104 +3,165 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const serviceClient = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
-
 export default defineEventHandler(async (event) => {
   try {
-    const user = event.context.user
-    if (!user) {
+    // Get runtime configuration
+    const config = useRuntimeConfig()
+    const supabaseUrl = config.public?.supabaseUrl
+    const anonKey = config.supabaseAnonKey || config.public?.supabaseAnonKey
+    const serviceRoleKey = config.supabaseServiceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
       throw createError({
-        statusCode: 401,
-        statusMessage: 'Authentication required'
+        statusCode: 500,
+        statusMessage: 'Missing Supabase configuration'
       })
     }
 
-    const query = getQuery(event)
-    const { apiary_id, hive_id } = query
+    // Step 1: Extract and validate authentication token
+    const authHeader = getHeader(event, 'authorization')
+    if (!authHeader) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Authorization header required'
+      })
+    }
 
-    // Build the query
-    let supabaseQuery = serviceClient
+    const token = authHeader.replace('Bearer ', '')
+    if (!token) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Valid token required'
+      })
+    }
+
+    // Step 2: Authenticate user with anon client
+    const authClient = createClient(supabaseUrl, anonKey)
+    const { data: { user }, error: authError } = await authClient.auth.getUser(token)
+    
+    if (authError || !user) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Invalid or expired token'
+      })
+    }
+
+    console.log(`Fetching sensor nodes for user: ${user.id}`)
+
+    // Step 3: Get query parameters for optional filtering
+    const query = getQuery(event)
+
+    // Step 4: Query database with service role
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey)
+
+    let dbQuery = serviceClient
       .from('sensor_nodes')
       .select(`
-        *,
-        hive:hives!sensor_nodes_hive_id_fkey(
+        id,
+        uuid,
+        hive_id,
+        hub_id,
+        name,
+        description,
+        user_id,
+        created_at,
+        updated_at,
+        hives (
           id,
-          name,
-          apiary_id,
-          apiary:apiaries!hives_apiary_id_fkey(id, name)
+          uuid,
+          name
         ),
-        hub:apiary_hubs!sensor_nodes_hub_id_fkey(
+        apiary_hubs (
           id,
-          name,
-          last_seen
-        ),
-        sensors(
-          id,
-          name,
-          sensor_type,
-          is_online,
-          battery_level,
-          last_reading_at
+          uuid,
+          name
         )
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
-    // Apply filters
-    if (apiary_id) {
-      // Filter by apiary through the hive relationship
-      supabaseQuery = supabaseQuery.eq('hive.apiary_id', apiary_id)
+    // Optional filtering by apiary_id (can be either UUID or numeric ID)
+    if (query.apiary_id) {
+      // First get the apiary to find associated hive IDs
+      let apiaryQuery = serviceClient
+        .from('apiaries')
+        .select('id')
+        .eq('user_id', user.id)
+      
+      // Check if apiary_id looks like a UUID or numeric ID
+      if (query.apiary_id.includes('-')) {
+        apiaryQuery = apiaryQuery.eq('uuid', query.apiary_id)
+      } else {
+        apiaryQuery = apiaryQuery.eq('id', parseInt(query.apiary_id))
+      }
+      
+      const { data: apiary, error: apiaryError } = await apiaryQuery.single()
+      
+      if (!apiaryError && apiary) {
+        // Get hive IDs for this apiary
+        const { data: hives } = await serviceClient
+          .from('hives')
+          .select('id')
+          .eq('apiary_id', apiary.id)
+          .eq('user_id', user.id)
+        
+        if (hives && hives.length > 0) {
+          const hiveIds = hives.map(h => h.id)
+          dbQuery = dbQuery.in('hive_id', hiveIds)
+        } else {
+          // No hives in this apiary, return empty result
+          return {
+            success: true,
+            data: [],
+            count: 0,
+            user_id: user.id
+          }
+        }
+      } else {
+        // Apiary not found, return empty result
+        return {
+          success: true,
+          data: [],
+          count: 0,
+          user_id: user.id
+        }
+      }
     }
 
-    if (hive_id) {
-      supabaseQuery = supabaseQuery.eq('hive_id', hive_id)
+    // Optional filtering by hive_id
+    if (query.hive_id) {
+      dbQuery = dbQuery.eq('hive_id', parseInt(query.hive_id))
     }
 
-    const { data: sensorNodes, error } = await supabaseQuery
+    const { data: sensorNodes, error: queryError } = await dbQuery
 
-    if (error) {
-      console.error('Error fetching sensor nodes:', error)
+    if (queryError) {
+      console.error('Database query error:', queryError)
       throw createError({
         statusCode: 500,
-        statusMessage: 'Failed to fetch sensor nodes'
+        statusMessage: 'Failed to fetch sensor nodes from database'
       })
     }
 
-    // Transform data to include derived properties
-    const transformedData = sensorNodes.map(node => ({
-      ...node,
-      // Calculate battery level from sensors (average or lowest)
-      battery_level: node.sensors?.length > 0 
-        ? Math.min(...node.sensors.map(s => s.battery_level || 100))
-        : node.battery_level || 100,
-      // Determine online status
-      is_online: node.last_seen 
-        ? (new Date() - new Date(node.last_seen)) < (10 * 60 * 1000) // 10 minutes
-        : false,
-      // Calculate RSSI/signal strength (mock for now)
-      rssi: node.last_seen ? -50 + Math.floor(Math.random() * 30) : null
-    }))
+    console.log(`Successfully fetched ${sensorNodes?.length || 0} sensor nodes for user ${user.id}`)
 
     return {
       success: true,
-      data: transformedData,
-      count: transformedData.length
+      data: sensorNodes || [],
+      count: sensorNodes?.length || 0,
+      user_id: user.id
     }
 
-  } catch (err) {
-    console.error('Sensor nodes API error:', err)
+  } catch (error) {
+    console.error('Sensor nodes API error:', error)
     
-    if (err.statusCode) {
-      throw err
+    if (error.statusCode) {
+      throw error
     }
     
     throw createError({
       statusCode: 500,
-      statusMessage: 'Internal server error'
+      statusMessage: 'Internal server error while fetching sensor nodes'
     })
   }
 })
-

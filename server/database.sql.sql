@@ -17,8 +17,8 @@ CREATE TABLE public.alerts (
   created_at timestamp with time zone DEFAULT now(),
   resolved_at timestamp with time zone,
   CONSTRAINT alerts_pkey PRIMARY KEY (id),
-  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
-  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
+  CONSTRAINT alerts_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
+  CONSTRAINT alerts_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id)
 );
 CREATE TABLE public.apiaries (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -35,8 +35,8 @@ CREATE TABLE public.apiaries (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT apiaries_pkey PRIMARY KEY (id),
-  CONSTRAINT apiaries_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT apiaries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT apiaries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT apiaries_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.apiary_hubs (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -51,8 +51,8 @@ CREATE TABLE public.apiary_hubs (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT apiary_hubs_pkey PRIMARY KEY (id),
-  CONSTRAINT apiary_hubs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT apiary_hubs_apiary_id_fkey FOREIGN KEY (apiary_id) REFERENCES public.apiaries(id)
+  CONSTRAINT apiary_hubs_apiary_id_fkey FOREIGN KEY (apiary_id) REFERENCES public.apiaries(id),
+  CONSTRAINT apiary_hubs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.daily_summaries (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -138,6 +138,21 @@ CREATE TABLE public.hub_firmware (
   CONSTRAINT hub_firmware_pkey PRIMARY KEY (id),
   CONSTRAINT hub_firmware_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES auth.users(id)
 );
+CREATE TABLE public.payment_history (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  user_id uuid NOT NULL,
+  subscription_id integer,
+  stripe_payment_intent_id character varying UNIQUE,
+  stripe_invoice_id character varying,
+  amount_cents integer NOT NULL,
+  currency character varying DEFAULT 'usd'::character varying,
+  status character varying NOT NULL,
+  description text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT payment_history_pkey PRIMARY KEY (id),
+  CONSTRAINT payment_history_subscription_id_fkey FOREIGN KEY (subscription_id) REFERENCES public.user_subscriptions(id),
+  CONSTRAINT payment_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
 CREATE TABLE public.register_interest (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
   name character varying NOT NULL,
@@ -158,23 +173,7 @@ CREATE TABLE public.sensor_firmware (
   CONSTRAINT sensor_firmware_pkey PRIMARY KEY (id),
   CONSTRAINT sensor_firmware_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES auth.users(id)
 );
-CREATE TABLE public.sensor_readings (
-  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
-  sensor_id integer NOT NULL,
-  hive_id integer NOT NULL,
-  hub_id integer,
-  sensor_type character varying NOT NULL CHECK (sensor_type::text = ANY (ARRAY['temperature'::character varying, 'weight'::character varying, 'humidity'::character varying, 'audio'::character varying]::text[])),
-  value numeric NOT NULL,
-  unit character varying NOT NULL,
-  reading_time timestamp with time zone NOT NULL DEFAULT now(),
-  signal_strength integer,
-  created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT sensor_readings_pkey PRIMARY KEY (id),
-  CONSTRAINT sensor_readings_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
-  CONSTRAINT sensor_readings_hub_id_fkey FOREIGN KEY (hub_id) REFERENCES public.apiary_hubs(id),
-  CONSTRAINT sensor_readings_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id)
-);
-CREATE TABLE public.sensor_units (
+CREATE TABLE public.sensor_nodes (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
   uuid uuid NOT NULL DEFAULT gen_random_uuid() UNIQUE,
   hive_id integer NOT NULL,
@@ -187,15 +186,30 @@ CREATE TABLE public.sensor_units (
   last_update_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT sensor_units_pkey PRIMARY KEY (id),
-  CONSTRAINT sensor_units_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
-  CONSTRAINT sensor_units_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT sensor_units_hub_id_fkey FOREIGN KEY (hub_id) REFERENCES public.apiary_hubs(id)
+  CONSTRAINT sensor_nodes_pkey PRIMARY KEY (id),
+  CONSTRAINT sensor_nodes_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
+  CONSTRAINT sensor_nodes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT sensor_nodes_hub_id_fkey FOREIGN KEY (hub_id) REFERENCES public.apiary_hubs(id)
+);
+CREATE TABLE public.sensor_readings (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  sensor_id integer NOT NULL,
+  hive_id integer NOT NULL,
+  hub_id integer,
+  sensor_type character varying NOT NULL CHECK (sensor_type::text = ANY (ARRAY['temperature'::character varying, 'weight'::character varying, 'humidity'::character varying, 'audio'::character varying]::text[])),
+  value numeric NOT NULL,
+  unit character varying NOT NULL,
+  reading_time timestamp with time zone NOT NULL DEFAULT now(),
+  signal_strength integer,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT sensor_readings_pkey PRIMARY KEY (id),
+  CONSTRAINT sensor_readings_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
+  CONSTRAINT sensor_readings_sensor_id_fkey FOREIGN KEY (sensor_id) REFERENCES public.sensors(id),
+  CONSTRAINT sensor_readings_hub_id_fkey FOREIGN KEY (hub_id) REFERENCES public.apiary_hubs(id)
 );
 CREATE TABLE public.sensors (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
   uuid uuid NOT NULL DEFAULT gen_random_uuid() UNIQUE,
-  sensor_unit_id integer,
   hive_id integer,
   user_id uuid NOT NULL,
   sensor_type character varying NOT NULL CHECK (sensor_type::text = ANY (ARRAY['temperature'::character varying, 'weight'::character varying, 'humidity'::character varying, 'audio'::character varying]::text[])),
@@ -207,8 +221,46 @@ CREATE TABLE public.sensors (
   last_reading_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  sensor_node_id integer,
   CONSTRAINT sensors_pkey PRIMARY KEY (id),
-  CONSTRAINT sensors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT sensors_sensor_node_id_fkey FOREIGN KEY (sensor_node_id) REFERENCES public.sensor_nodes(id),
   CONSTRAINT sensors_hive_id_fkey FOREIGN KEY (hive_id) REFERENCES public.hives(id),
-  CONSTRAINT sensors_sensor_unit_id_fkey FOREIGN KEY (sensor_unit_id) REFERENCES public.sensor_units(id)
+  CONSTRAINT sensors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.subscription_plans (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL UNIQUE,
+  display_name character varying NOT NULL,
+  description text,
+  price_monthly_cents integer DEFAULT 0,
+  price_yearly_cents integer DEFAULT 0,
+  stripe_price_id_monthly character varying,
+  stripe_price_id_yearly character varying,
+  features jsonb DEFAULT '{}'::jsonb,
+  limits jsonb DEFAULT '{}'::jsonb,
+  is_active boolean DEFAULT true,
+  sort_order integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT subscription_plans_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.user_subscriptions (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  user_id uuid NOT NULL,
+  plan_id integer NOT NULL,
+  stripe_customer_id character varying,
+  stripe_subscription_id character varying UNIQUE,
+  status character varying NOT NULL DEFAULT 'active'::character varying CHECK (status::text = ANY (ARRAY['active'::character varying, 'canceled'::character varying, 'past_due'::character varying, 'unpaid'::character varying, 'trialing'::character varying]::text[])),
+  current_period_start timestamp with time zone,
+  current_period_end timestamp with time zone,
+  cancel_at_period_end boolean DEFAULT false,
+  canceled_at timestamp with time zone,
+  trial_start timestamp with time zone,
+  trial_end timestamp with time zone,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT user_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT user_subscriptions_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.subscription_plans(id)
 );

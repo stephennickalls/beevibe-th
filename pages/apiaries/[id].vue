@@ -89,58 +89,63 @@
           </div>
 
           <!-- Connectivity Hub Tab -->
-          <div v-if="activeTab === 'connectivity'">
-            <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-semibold">Hub & Sensor Nodes</h2>
-              <div class="flex gap-2">
+          <div v-if="activeTab === 'connectivity'" class="space-y-6">
+            <!-- Hub Section -->
+            <div class="bg-gray-800 rounded-lg p-6">
+              <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Apiary Hub</h2>
+                <div class="flex gap-2">
+                  <button 
+                    v-if="!apiary.hub"
+                    @click="showAddHubModal = true"
+                    class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 694 825">
+                      <path d="M346.5 293L449.99 352.75V472.25L346.5 532L243.01 472.25V352.75L346.5 293Z"/>
+                    </svg>
+                    Add Hub
+                  </button>
+                </div>
+              </div>
+
+              <!-- Hub Status -->
+              <div v-if="apiary.hub">
+                <ApiaryHubCard
+                  :hub="apiary.hub"
+                  @click="navigateToHubDetails"
+                />
+              </div>
+
+              <!-- No Hub State -->
+              <div v-else class="text-center py-12 bg-gray-900 rounded-lg border-2 border-dashed border-gray-700">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" viewBox="0 0 694 825" fill="currentColor">
+                  <path d="M346.5 293L449.99 352.75V472.25L346.5 532L243.01 472.25V352.75L346.5 293Z" opacity="0.5"/>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-300 mb-2">No Hub Assigned</h3>
+                <p class="text-gray-400 mb-4">This apiary needs a hub to enable sensor data collection and monitoring.</p>
                 <button 
-                  v-if="!apiary.hub"
                   @click="showAddHubModal = true"
-                  class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-lg transition-colors flex items-center gap-2"
+                  class="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-lg transition-colors"
                 >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 694 825">
-                    <path d="M346.5 293L449.99 352.75V472.25L346.5 532L243.01 472.25V352.75L346.5 293Z"/>
-                  </svg>
                   Add Hub
                 </button>
               </div>
             </div>
 
-            <!-- Hub Status -->
-            <div v-if="apiary.hub" class="mb-6">
-              <ApiaryHubCard
-                :hub="apiary.hub"
-                @click="navigateToHubDetails"
+            <!-- Sensor Nodes Section - Full Width -->
+            <div class="bg-gray-800 rounded-lg p-6">
+              <SensorNodesList
+                :sensor-nodes="sensorNodes"
+                :available-hives="availableHives"
+                :hub-online="hasOnlineHub"
+                :scanning="scanning"
+                @scan-for-nodes="handleScanForNodes"
+                @add-node-manually="() => { showAddSensorNodeModal = true }"
+                @assign-to-hive="handleAssignSensorNodeToHive"
+                @view-details="handleViewSensorNodeDetails"
+                @remove-node="handleRemoveSensorNode"
               />
             </div>
-
-            <!-- No Hub State -->
-            <div v-if="!apiary.hub" class="text-center py-12 bg-gray-800 rounded-lg border-2 border-dashed border-gray-700 mb-6">
-              <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" viewBox="0 0 694 825" fill="currentColor">
-                <path d="M346.5 293L449.99 352.75V472.25L346.5 532L243.01 472.25V352.75L346.5 293Z" opacity="0.5"/>
-              </svg>
-              <h3 class="text-lg font-medium text-gray-300 mb-2">No Hub Assigned</h3>
-              <p class="text-gray-400 mb-4">This apiary needs a hub to enable sensor data collection and monitoring.</p>
-              <button 
-                @click="showAddHubModal = true"
-                class="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-lg transition-colors"
-              >
-                Add Hub
-              </button>
-            </div>
-
-            <!-- Sensor Nodes Section -->
-            <SensorNodesList
-              :sensor-nodes="sensorNodes"
-              :available-hives="availableHives"
-              :hub-online="hasOnlineHub"
-              :scanning="scanning"
-              @scan-for-nodes="handleScanForNodes"
-              @add-node-manually="showAddSensorNodeModal = true"
-              @assign-to-hive="handleAssignSensorNodeToHive"
-              @view-details="handleViewSensorNodeDetails"
-              @remove-node="handleRemoveSensorNode"
-            />
           </div>
 
           <!-- Location Tab -->
@@ -217,6 +222,77 @@
       @close="showDeleteConfirmModal = false"
       @delete="handleDeleteApiary"
     />
+
+    <!-- Add Sensor Node Modal -->
+    <div v-if="showAddSensorNodeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-gray-800 rounded-lg p-6 max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Add Sensor Node Manually</h3>
+        <p class="text-gray-300 mb-4">
+          This feature allows you to manually add a sensor node if it's not being detected automatically.
+        </p>
+        <div class="flex justify-end space-x-3">
+          <button 
+            @click="showAddSensorNodeModal = false"
+            class="px-4 py-2 text-gray-400 hover:text-white"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="showAddSensorNodeModal = false"
+            class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-lg transition-colors"
+          >
+            Add Node
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensor Node Details Modal -->
+    <div v-if="showSensorNodeDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-gray-800 rounded-lg p-6 max-w-2xl mx-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Sensor Node Details</h3>
+          <button 
+            @click="showSensorNodeDetailsModal = false"
+            class="text-gray-400 hover:text-white"
+          >
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div v-if="selectedSensorNode" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-400">Name:</span>
+              <p class="text-white mt-1">{{ selectedSensorNode.name }}</p>
+            </div>
+            <div>
+              <span class="text-gray-400">ID:</span>
+              <p class="text-white mt-1 font-mono">{{ selectedSensorNode.id }}</p>
+            </div>
+            <div>
+              <span class="text-gray-400">Status:</span>
+              <p class="text-white mt-1">{{ selectedSensorNode.status || 'Unknown' }}</p>
+            </div>
+            <div>
+              <span class="text-gray-400">Assigned Hive:</span>
+              <p class="text-white mt-1">{{ selectedSensorNode.hive?.name || 'Not assigned' }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end mt-6">
+          <button 
+            @click="showSensorNodeDetailsModal = false"
+            class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 

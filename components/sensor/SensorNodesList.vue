@@ -3,7 +3,7 @@
     <!-- Header Section -->
     <div class="flex justify-between items-center">
       <div>
-        <h3 class="text-lg font-semibold text-white">Sensor Nodes</h3>
+        <h3 class="text-lg font-semibold text-white">Sensor Nodes ({{ sensorNodes.length }})</h3>
         <p class="text-sm text-gray-400 mt-1">
           ESP32 boards that collect data from individual sensors at each hive
         </p>
@@ -34,9 +34,9 @@
       </div>
     </div>
 
-    <!-- Sensor Nodes Grid -->
-    <div v-if="sensorNodes.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <SensorNodeCard
+    <!-- Sensor Nodes List - Full Width -->
+    <div v-if="sensorNodes.length > 0" class="space-y-3">
+      <SensorNodeFullWidth
         v-for="node in sensorNodes"
         :key="node.id"
         :sensor-node="node"
@@ -75,34 +75,13 @@
         </button>
       </div>
     </div>
-
-    <!-- Data Integrity Warning -->
-    <div v-if="orphanedSensors.length > 0" class="bg-yellow-900/30 border border-yellow-500/30 rounded-lg p-4">
-      <div class="flex items-start gap-3">
-        <svg class="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
-        </svg>
-        <div class="flex-1">
-          <h4 class="text-yellow-400 font-medium mb-1">Data Integrity Issue Detected</h4>
-          <p class="text-yellow-300 text-sm mb-3">
-            {{ orphanedSensors.length }} sensor{{ orphanedSensors.length > 1 ? 's' : '' }} found without assigned sensor nodes. 
-            This can happen when sensors were created before sensor nodes were implemented.
-          </p>
-          <button 
-            @click="$emit('fix-orphaned-sensors')"
-            class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-sm font-medium transition-colors"
-          >
-            Auto-Fix Orphaned Sensors
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import SensorNodeCard from './SensorNodeCard.vue'
+// Import the new full-width component instead of the card
+import SensorNodeFullWidth from '../sensor/SensorNodeCard.vue'
 
 // Props
 const props = defineProps({
@@ -122,10 +101,6 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  orphanedSensors: {
-    type: Array,
-    default: () => []
-  }
 })
 
 // Events
@@ -134,8 +109,7 @@ const emit = defineEmits([
   'add-node-manually', 
   'assign-to-hive',
   'view-details',
-  'remove-node',
-  'fix-orphaned-sensors'
+  'remove-node'
 ])
 
 // Event handlers
